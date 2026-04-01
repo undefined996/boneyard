@@ -872,11 +872,6 @@ export default function PlaygroundPage() {
                 lineHeight: "1.6",
               },
             }}
-            options={{
-              showLineNumbers: true,
-              showInlineErrors: true,
-              editorHeight: 320,
-            }}
           >
             <SandpackLayout style={{ flexDirection: 'column' }} className="sm:!flex-row">
               <SandpackCodeEditor

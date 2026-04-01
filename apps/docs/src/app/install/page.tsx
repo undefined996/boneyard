@@ -46,6 +46,22 @@ export default function InstallPage() {
           is what the CLI uses to identify it and generate the bones file.
         </p>
 
+        <p className="text-[14px] text-[#78716c] leading-relaxed mt-4 mb-4">
+          If your component needs data from an API or is behind authentication, add a <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">fixture</code> prop
+          with mock content. The CLI renders the fixture during capture — your real data isn&apos;t needed:
+        </p>
+        <CodeBlock filename="app/blog/page.tsx" language="tsx" code={`&lt;<span class="text-[#fde68a]">Skeleton</span>
+  <span class="text-[#93c5fd]">name</span>=<span class="text-[#86efac]">"blog-card"</span>
+  <span class="text-[#93c5fd]">loading</span>={isLoading}
+  <span class="text-[#93c5fd]">fixture</span>={&lt;<span class="text-[#fde68a]">BlogCard</span> data={{
+    <span class="text-[#93c5fd]">title</span>: <span class="text-[#86efac]">"Sample Post"</span>,
+    <span class="text-[#93c5fd]">excerpt</span>: <span class="text-[#86efac]">"Placeholder text for layout..."</span>,
+    <span class="text-[#93c5fd]">author</span>: <span class="text-[#86efac]">"Jane Doe"</span>
+  }} /&gt;}
+&gt;
+  {data &amp;&amp; &lt;<span class="text-[#fde68a]">BlogCard</span> data={data} /&gt;}
+&lt;/<span class="text-[#fde68a]">Skeleton</span>&gt;`} />
+
         <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-4 space-y-2">
           <p className="text-[13px] font-medium text-stone-700">Notes</p>
           <ul className="text-[13px] text-[#78716c] space-y-1.5 list-disc pl-4">
@@ -54,7 +70,9 @@ export default function InstallPage() {
               hooks — add <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">&quot;use client&quot;</code> to any file that imports it.
             </li>
             <li>
-              <strong className="text-stone-600">Children must render content:</strong> The build CLI snapshots the DOM when children are visible — make sure your component renders real content, not an empty state.
+              <strong className="text-stone-600">Data-dependent components:</strong> If your component needs API data to render,
+              use the <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">fixture</code> prop to provide mock content
+              for the build step. The fixture is only rendered during <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">npx boneyard build</code> — never in production.
             </li>
           </ul>
         </div>
@@ -81,6 +99,24 @@ export default function InstallPage() {
             Playwright is included as a dependency. On first run you may need to install the browser:{" "}
             <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">npx playwright install chromium</code>
           </p>
+        </div>
+
+        <div className="mt-6 rounded-lg border border-stone-200 bg-stone-50 p-4 space-y-2">
+          <p className="text-[13px] font-medium text-stone-700">Apps with authentication</p>
+          <p className="text-[13px] text-[#78716c]">
+            The build CLI uses a headless browser to visit your app. If your pages require login, you have a few options:
+          </p>
+          <ul className="text-[13px] text-[#78716c] space-y-1.5 list-disc pl-4">
+            <li>
+              <strong className="text-stone-600">Use the <code className="text-[12px] bg-white px-1 py-0.5 rounded border border-stone-200">fixture</code> prop</strong> — provide mock data so the CLI can capture bones without needing real user sessions. This is the recommended approach.
+            </li>
+            <li>
+              <strong className="text-stone-600">Run against a dev server with auth disabled</strong> — many frameworks support an environment flag to bypass auth in development.
+            </li>
+            <li>
+              <strong className="text-stone-600">Point the CLI at public pages</strong> — if your login/onboarding pages don&apos;t require auth, capture those directly and use fixtures for authenticated pages.
+            </li>
+          </ul>
         </div>
       </section>
 

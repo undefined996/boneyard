@@ -86,6 +86,23 @@ export default function FeaturesPage() {
           <PropItem name="fallback" type="ReactNode">
             What to show if you haven&apos;t generated bones yet. You probably don&apos;t need this — just run the build command.
           </PropItem>
+
+          <PropItem name="fixture" type="ReactNode">
+            <p>Mock content rendered during <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">npx boneyard build</code> so the CLI can capture bone positions even when real data isn&apos;t available (e.g., behind authentication, user-specific data, or API-dependent content).</p>
+            <p className="mt-2">Only rendered when the CLI is running — never used in production.</p>
+            <div className="mt-2 rounded-lg bg-[#1a1a1a] p-3 font-mono text-[12px]">
+              <span className="text-[#93c5fd]">fixture</span><span className="text-stone-300">={`{`}</span>{"\n"}
+              <span className="text-stone-300">{"  "}&lt;</span><span className="text-[#fde68a]">BlogCard</span><span className="text-stone-300">{" "}data={`{`}{`{`}</span>{"\n"}
+              <span className="text-stone-300">{"    "}</span><span className="text-[#93c5fd]">title</span><span className="text-stone-300">: </span><span className="text-[#86efac]">&quot;Sample Post Title&quot;</span><span className="text-stone-300">,</span>{"\n"}
+              <span className="text-stone-300">{"    "}</span><span className="text-[#93c5fd]">excerpt</span><span className="text-stone-300">: </span><span className="text-[#86efac]">&quot;Placeholder text for layout capture...&quot;</span>{"\n"}
+              <span className="text-stone-300">{"  "}{`}`}{`}`} /&gt;</span>{"\n"}
+              <span className="text-stone-300">{`}`}</span>
+            </div>
+          </PropItem>
+
+          <PropItem name="snapshotConfig" type="SnapshotConfig">
+            Controls how the build CLI extracts bones. See the &quot;Hiding elements&quot; section below for details.
+          </PropItem>
         </div>
 
         {/* Example */}
