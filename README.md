@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="boneyard-logo.gif" alt="Boneyard" width="600" />
+</p>
+
 # boneyard
 
 Pixel-perfect skeleton loading screens, extracted from your real DOM. No manual measurement, no hand-tuned placeholders.
