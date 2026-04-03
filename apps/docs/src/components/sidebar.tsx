@@ -14,6 +14,7 @@ const navItems = [
   { href: "/overview", label: "Overview" },
   { href: "/install", label: "Install" },
   { href: "/features", label: "Features" },
+  { href: "/performance", label: "Performance" },
   { href: "/output", label: "Output" },
 ];
 

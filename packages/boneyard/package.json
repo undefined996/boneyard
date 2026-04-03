@@ -28,6 +28,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "benchmark": "bun run scripts/benchmark-layout.ts",
     "test": "bun test",
     "prepublishOnly": "tsc"
   },
