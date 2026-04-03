@@ -421,7 +421,7 @@ function DemoCard({ demoKey, label, description, Component }: { demoKey: string;
       </div>
 
       {/* Side-by-side: Real UI | Skeleton */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Left: Real UI */}
         <div>
           <div className="text-[10px] font-mono text-stone-400 uppercase tracking-wider mb-1.5 px-1">Real UI</div>

@@ -2,8 +2,8 @@ import { CodeBlock } from "@/components/ui/code-block";
 
 function PropDef({ name, children }: { name: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-4 py-2 first:pt-0">
-      <code className="font-[family-name:var(--font-mono)] text-[13px] text-[#1c1917] w-28 shrink-0 font-medium">{name}</code>
+    <div className="flex flex-col sm:flex-row gap-1 sm:gap-4 py-2 first:pt-0">
+      <code className="font-[family-name:var(--font-mono)] text-[13px] text-[#1c1917] sm:w-28 shrink-0 font-medium">{name}</code>
       <p className="text-[14px] text-[#78716c] leading-relaxed">{children}</p>
     </div>
   );

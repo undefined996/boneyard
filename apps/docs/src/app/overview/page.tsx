@@ -64,7 +64,7 @@ function DashboardMock() {
 function StaticHeroDemo() {
   return (
     <BrowserMockup url="localhost:3000">
-      <div className="grid grid-cols-2 gap-3 text-[11px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
         {/* Real UI column */}
         <div>
           <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-2">Real UI</div>
@@ -179,7 +179,7 @@ export default function OverviewPage() {
             <div className="w-5 h-5 rounded-full bg-stone-800 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</div>
             <div>
               <p className="text-[14px] text-[#1c1917] font-medium mb-2">Wrap your component</p>
-              <div className="relative rounded-lg border border-stone-200 bg-[#1a1a1a] p-4 font-mono text-[13px] leading-relaxed">
+              <div className="relative rounded-lg border border-stone-200 bg-[#1a1a1a] p-4 font-mono text-[13px] leading-relaxed overflow-x-auto">
                 <CopyButton text={`import { Skeleton } from 'boneyard-js/react'\n\n<Skeleton name="blog-card" loading={isLoading}>\n  {data && <BlogCard data={data} />}\n</Skeleton>`} />
                 <pre className="whitespace-pre text-stone-300 m-0"><span className="text-[#c084fc]">import</span>{" { Skeleton } "}<span className="text-[#c084fc]">from</span><span className="text-[#86efac]"> &apos;boneyard-js/react&apos;</span>{"\n"}{"\n"}<span className="text-stone-500">{"<"}</span><span className="text-[#fde68a]">Skeleton</span><span className="text-[#93c5fd]"> name</span>=<span className="text-[#86efac]">&quot;blog-card&quot;</span><span className="text-[#93c5fd]"> loading</span>={"{isLoading}"}<span className="text-stone-500">{">"}</span>{"\n"}{"  "}{"{data && "}<span className="text-stone-500">{"<"}</span><span className="text-[#fde68a]">BlogCard</span>{" data={data} "}<span className="text-stone-500">{"/>"}</span>{"}"}{"\n"}<span className="text-stone-500">{"</"}</span><span className="text-[#fde68a]">Skeleton</span><span className="text-stone-500">{">"}</span></pre>
               </div>

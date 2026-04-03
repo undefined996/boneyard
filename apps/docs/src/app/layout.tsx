@@ -33,7 +33,7 @@ export default function RootLayout({
       <body className="bg-[#fafaf9] text-[#1c1917] font-[family-name:var(--font-sans)] antialiased">
         <BoneRegistryInit />
         {/* Centered container for sidebar + content */}
-        <div className="mx-auto max-w-[1080px] flex h-screen px-3 py-3">
+        <div className="mx-auto max-w-[1080px] flex h-screen px-3 py-3 pt-[calc(3.5rem+0.75rem)] md:pt-3">
           <Sidebar />
           <main className="flex-1 min-w-0 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
             {children}

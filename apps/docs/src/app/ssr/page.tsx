@@ -198,7 +198,7 @@ export default function SSRPage() {
   )
 }`}
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BrowserMockup url="localhost:3000">
                 <NotificationList />
               </BrowserMockup>
@@ -213,7 +213,7 @@ export default function SSRPage() {
           {/* Stats */}
           <div>
             <p className="text-[12px] text-stone-400 mb-2">Dashboard stats</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BrowserMockup url="localhost:3000">
                 <StatsRow />
               </BrowserMockup>
@@ -228,7 +228,7 @@ export default function SSRPage() {
           {/* Post */}
           <div>
             <p className="text-[12px] text-stone-400 mb-2">Feed post</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BrowserMockup url="localhost:3000">
                 <PostCard />
               </BrowserMockup>
