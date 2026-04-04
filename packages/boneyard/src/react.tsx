@@ -248,7 +248,7 @@ export function Skeleton({
       {showSkeleton && (
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            {activeBones.bones.map((raw: AnyBone, i: number) => {
+            {(activeBones.bones as AnyBone[]).map((raw, i) => {
               const b = normalizeBone(raw)
               const boneColor = b.c ? adjustColor(resolvedColor, isDark ? 0.03 : 0.45) : resolvedColor
               const lighterColor = adjustColor(resolvedColor, isDark ? 0.04 : 0.3)

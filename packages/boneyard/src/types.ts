@@ -81,7 +81,7 @@ export interface SkeletonResult {
   viewportWidth: number
   width: number
   height: number
-  bones: AnyBone[]
+  bones: Bone[]
 }
 
 /**

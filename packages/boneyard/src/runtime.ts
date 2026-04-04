@@ -59,8 +59,8 @@ export function renderBones(
 
   let html = `${keyframes}<div class="boneyard" style="position:relative;width:100%;height:${skel.height}px">`
 
-  for (const raw of skel.bones) {
-    const b = normalizeBone(raw as AnyBone)
+  for (const raw of (skel.bones as AnyBone[])) {
+    const b = normalizeBone(raw)
     const radius = typeof b.r === 'string' ? b.r : `${b.r}px`
     html += `<div class="boneyard-bone" style="position:absolute;left:${b.x}%;top:${b.y}px;width:${b.w}%;height:${b.h}px;border-radius:${radius};background-color:${c}"></div>`
   }
