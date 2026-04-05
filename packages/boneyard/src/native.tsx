@@ -15,7 +15,8 @@ import {
   type ViewStyle,
   type LayoutChangeEvent,
 } from 'react-native'
-import type { Bone, SkeletonResult, ResponsiveBones } from './types.js'
+import { normalizeBone } from './types.js'
+import type { AnyBone, SkeletonResult, ResponsiveBones } from './types.js'
 
 // ── Bones registry ──────────────────────────────────────────────────────────
 const bonesRegistry = new Map<string, SkeletonResult | ResponsiveBones>()
@@ -181,7 +182,8 @@ export function Skeleton({
     <View style={[styles.container, style]} onLayout={onLayout}>
       {showSkeleton ? (
         <View style={{ width: '100%', height: boneHeight }}>
-          {activeBones.bones.map((b: Bone, i: number) => {
+          {activeBones.bones.map((raw: AnyBone, i: number) => {
+            const b = normalizeBone(raw)
             const borderRadius = typeof b.r === 'number'
               ? b.r
               : b.r === '50%'

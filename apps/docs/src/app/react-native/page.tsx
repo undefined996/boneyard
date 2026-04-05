@@ -119,7 +119,10 @@ npx boneyard-js build http://localhost:8081 --out ./bones`} />
           <div>
             <p className="text-[13px] font-medium text-stone-700 mb-2">Option C: Write bones by hand</p>
             <p className="text-[14px] text-[#78716c] leading-relaxed mb-3">
-              Create a <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">.bones.json</code> file manually. Each bone is a rectangle with position, size, and border radius:
+              Create a <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">.bones.json</code> file manually.
+              As of v1.6, bones are stored as compact tuples <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">[x, y, w, h, r, c?]</code> to
+              keep files small. The native renderer normalizes them at runtime, so either the tuple or the legacy
+              object form works:
             </p>
             <CodeBlock filename="bones/profile-card.bones.json" language="json" code={`{
   <span class="text-[#93c5fd]">"breakpoints"</span>: {
@@ -129,17 +132,23 @@ npx boneyard-js build http://localhost:8081 --out ./bones`} />
       <span class="text-[#93c5fd]">"width"</span>: <span class="text-[#fbbf24]">343</span>,
       <span class="text-[#93c5fd]">"height"</span>: <span class="text-[#fbbf24]">200</span>,
       <span class="text-[#93c5fd]">"bones"</span>: [
-        { <span class="text-[#93c5fd]">"x"</span>: <span class="text-[#fbbf24]">4</span>, <span class="text-[#93c5fd]">"y"</span>: <span class="text-[#fbbf24]">16</span>, <span class="text-[#93c5fd]">"w"</span>: <span class="text-[#fbbf24]">18</span>, <span class="text-[#93c5fd]">"h"</span>: <span class="text-[#fbbf24]">64</span>, <span class="text-[#93c5fd]">"r"</span>: <span class="text-[#86efac]">"50%"</span> },
-        { <span class="text-[#93c5fd]">"x"</span>: <span class="text-[#fbbf24]">26</span>, <span class="text-[#93c5fd]">"y"</span>: <span class="text-[#fbbf24]">20</span>, <span class="text-[#93c5fd]">"w"</span>: <span class="text-[#fbbf24]">45</span>, <span class="text-[#93c5fd]">"h"</span>: <span class="text-[#fbbf24]">18</span>, <span class="text-[#93c5fd]">"r"</span>: <span class="text-[#fbbf24]">6</span> },
-        { <span class="text-[#93c5fd]">"x"</span>: <span class="text-[#fbbf24]">26</span>, <span class="text-[#93c5fd]">"y"</span>: <span class="text-[#fbbf24]">44</span>, <span class="text-[#93c5fd]">"w"</span>: <span class="text-[#fbbf24]">35</span>, <span class="text-[#93c5fd]">"h"</span>: <span class="text-[#fbbf24]">14</span>, <span class="text-[#93c5fd]">"r"</span>: <span class="text-[#fbbf24]">6</span> }
+        [<span class="text-[#fbbf24]">0</span>, <span class="text-[#fbbf24]">0</span>, <span class="text-[#fbbf24]">100</span>, <span class="text-[#fbbf24]">200</span>, <span class="text-[#fbbf24]">12</span>, <span class="text-[#fbbf24]">true</span>],
+        [<span class="text-[#fbbf24]">4</span>, <span class="text-[#fbbf24]">16</span>, <span class="text-[#fbbf24]">18</span>, <span class="text-[#fbbf24]">64</span>, <span class="text-[#86efac]">"50%"</span>],
+        [<span class="text-[#fbbf24]">26</span>, <span class="text-[#fbbf24]">20</span>, <span class="text-[#fbbf24]">45</span>, <span class="text-[#fbbf24]">18</span>, <span class="text-[#fbbf24]">6</span>],
+        [<span class="text-[#fbbf24]">26</span>, <span class="text-[#fbbf24]">44</span>, <span class="text-[#fbbf24]">35</span>, <span class="text-[#fbbf24]">14</span>, <span class="text-[#fbbf24]">6</span>]
       ]
     }
   }
 }`} />
             <p className="text-[13px] text-stone-400 mt-2">
-              <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">x</code> and <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">w</code> are percentages of the container width.
+              Tuple order is <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">[x, y, w, h, r, c?]</code>.
+              <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded ml-1">x</code> and <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">w</code> are percentages of the container width.
               <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded ml-1">y</code> and <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">h</code> are pixels.
               <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded ml-1">r</code> is border radius (px or &quot;50%&quot; for circles).
+              The optional 6th value <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">c</code> marks a container bone (rendered lighter so child bones stand out).
+            </p>
+            <p className="text-[13px] text-stone-400 mt-2">
+              Legacy object form — <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">{"{ x, y, w, h, r, c? }"}</code> — is still accepted; the renderer normalizes both on the fly.
             </p>
           </div>
         </div>
@@ -385,7 +394,7 @@ module.exports = config`} />
               </tr>
               <tr>
                 <td className="px-4 py-2 text-stone-800">Bone format</td>
-                <td className="px-4 py-2" colSpan={2}>Identical .bones.json — fully cross-platform</td>
+                <td className="px-4 py-2" colSpan={2}>Identical .bones.json (compact tuples or legacy objects) — fully cross-platform</td>
               </tr>
             </tbody>
           </table>
