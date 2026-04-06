@@ -260,7 +260,31 @@ export default function ReactNativePage() {
         <div className="section-divider" id="expo-metro">
           <span>Expo &amp; Metro setup</span>
         </div>
-        <p className="text-[14px] text-[#78716c] leading-relaxed mt-4 mb-4">
+        <div className="mt-4 rounded-lg border border-stone-200 overflow-hidden mb-4">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="bg-stone-50 border-b border-stone-200">
+                <th className="text-left px-4 py-2 font-medium text-stone-700">Requirement</th>
+                <th className="text-left px-4 py-2 font-medium text-stone-700">Minimum version</th>
+              </tr>
+            </thead>
+            <tbody className="text-[#78716c]">
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 text-stone-800">Expo SDK</td>
+                <td className="px-4 py-2">50+ (Fabric/New Architecture enabled by default)</td>
+              </tr>
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 text-stone-800">React Native (bare)</td>
+                <td className="px-4 py-2">0.71+ (works with both Paper and Fabric)</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-stone-800">React</td>
+                <td className="px-4 py-2">18+</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[14px] text-[#78716c] leading-relaxed mb-4">
           Import from <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">boneyard-js/native</code> (not <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">boneyard-js/react-native</code>).
           Metro has special handling for paths containing &quot;react-native&quot; which can cause resolution issues.
         </p>
