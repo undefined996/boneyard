@@ -1,5 +1,19 @@
 <script module lang="ts">
   export { registerBones } from './shared.js'
+
+  export type AnimationStyle = 'pulse' | 'shimmer' | 'solid' | boolean
+
+  interface BoneyardConfig {
+    color?: string
+    darkColor?: string
+    animate?: AnimationStyle
+  }
+
+  let _globalConfig: BoneyardConfig = {}
+
+  export function configureBoneyard(config: BoneyardConfig): void {
+    _globalConfig = { ..._globalConfig, ...config }
+  }
 </script>
 
 <script lang="ts">
@@ -16,8 +30,6 @@
   } from './shared.js'
 
   ensureBuildSnapshotHook()
-
-  export type AnimationStyle = 'pulse' | 'shimmer' | 'solid' | boolean
 
   export interface SkeletonProps {
     loading: boolean
@@ -58,7 +70,7 @@
 
   let resolvedClassName = $derived(classNameProp ?? classProp)
   let buildMode = isBuildMode()
-  let resolvedColor = $derived(isDark ? (darkColor ?? 'rgba(255,255,255,0.06)') : (color ?? 'rgba(0,0,0,0.08)'))
+  let resolvedColor = $derived(isDark ? (darkColor ?? _globalConfig.darkColor ?? 'rgba(255,255,255,0.06)') : (color ?? _globalConfig.color ?? 'rgba(0,0,0,0.08)'))
   let serializedSnapshotConfig = $derived(snapshotConfig ? JSON.stringify(snapshotConfig) : undefined)
   let effectiveBones = $derived(initialBones ?? (name ? getRegisteredBones(name) : undefined))
   let viewportWidth = $derived(typeof window !== 'undefined' ? window.innerWidth : containerWidth)
@@ -77,10 +89,11 @@
       : 1,
   )
 
+  let rawAnimate = $derived(animate ?? _globalConfig.animate ?? 'pulse')
   let animationStyle = $derived<'pulse' | 'shimmer' | 'solid'>(
-    animate === true ? 'pulse' :
-    animate === false ? 'solid' :
-    animate
+    rawAnimate === true ? 'pulse' :
+    rawAnimate === false ? 'solid' :
+    rawAnimate
   )
 
   function updateDarkMode() {
@@ -181,11 +194,12 @@
       <div data-boneyard-overlay="true" style="position:absolute;inset:0;overflow:hidden;">
         <div style="position:relative;width:100%;height:100%;">
           {#each activeBones.bones as bone, i (i)}
+            {@const b = normalizeBone(bone)}
             <div
               data-boneyard-bone="true"
               style={getBoneStyle(bone, scaleY, resolvedColor, isDark)}
             >
-              {#if animationStyle !== 'solid'}
+              {#if animationStyle !== 'solid' && !b.c}
                 <div style={getOverlayStyle(resolvedColor, isDark, animationStyle)}></div>
               {/if}
             </div>
