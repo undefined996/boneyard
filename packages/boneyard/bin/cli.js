@@ -619,10 +619,15 @@ mkdirSync(outputDir, { recursive: true })
 console.log(`\n  \x1b[2m${'─'.repeat(50)}\x1b[0m`)
 console.log(`  \x1b[1mWriting files\x1b[0m\n`)
 for (const [name, data] of Object.entries(collected)) {
-  const outPath = join(outputDir, `${name}.bones.json`)
+  const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const outPath = resolve(outputDir, `${safeName}.bones.json`)
+  if (!outPath.startsWith(resolve(outputDir))) {
+    console.error(`  \x1b[31m✗\x1b[0m Skipping "${name}" — path escapes output directory`)
+    continue
+  }
   writeFileSync(outPath, JSON.stringify(data, null, 2))
   const bpCount = Object.keys(data.breakpoints).length
-  console.log(`  \x1b[32m→\x1b[0m ${name}.bones.json  \x1b[2m(${bpCount} breakpoint${bpCount !== 1 ? 's' : ''})\x1b[0m`)
+  console.log(`  \x1b[32m→\x1b[0m ${safeName}.bones.json  \x1b[2m(${bpCount} breakpoint${bpCount !== 1 ? 's' : ''})\x1b[0m`)
 }
 
 // ── Generate registry.js ─────────────────────────────────────────────────────
@@ -660,8 +665,9 @@ if (hasRuntimeConfig) {
 }
 registryLines.push('')
 for (const name of names) {
-  const varName = '_' + name.replace(/[^a-zA-Z0-9]/g, '_')
-  registryLines.push(`import ${varName} from './${name}.bones.json'`)
+  const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const varName = '_' + safeName.replace(/[^a-zA-Z0-9]/g, '_')
+  registryLines.push(`import ${varName} from './${safeName}.bones.json'`)
 }
 registryLines.push('')
 
@@ -677,8 +683,9 @@ if (hasRuntimeConfig) {
 
 registryLines.push('registerBones({')
 for (const name of names) {
-  const varName = '_' + name.replace(/[^a-zA-Z0-9]/g, '_')
-  registryLines.push(`  "${name}": ${varName},`)
+  const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const varName = '_' + safeName.replace(/[^a-zA-Z0-9]/g, '_')
+  registryLines.push(`  "${safeName}": ${varName},`)
 }
 registryLines.push('})')
 registryLines.push('')
@@ -756,10 +763,8 @@ if (watchMode && !nativeMode) {
   async function recapture() {
     const originalLog = console.log
     originalLog(`  \x1b[2m⟳ Change detected — recapturing...\x1b[0m`)
-    // Mute console during recapture
     console.log = () => {}
     try {
-      // Reset state
       for (const key of Object.keys(collected)) delete collected[key]
       skippedSkeletons.clear()
       visited.clear()
@@ -779,19 +784,18 @@ if (watchMode && !nativeMode) {
         await capturePage(watchUrl)
       }
 
-      console.log = originalLog
-
       const newSnapshot = JSON.stringify(collected)
       if (newSnapshot !== lastSnapshot && Object.keys(collected).length > 0) {
         lastSnapshot = newSnapshot
         const ts = new Date().toLocaleTimeString()
         const updatedNames = Object.keys(collected)
-        console.log(`  \x1b[32m↻\x1b[0m \x1b[2m${ts}\x1b[0m Updated: ${updatedNames.join(', ')}`)
+        originalLog(`  \x1b[32m↻\x1b[0m \x1b[2m${ts}\x1b[0m Updated: ${updatedNames.join(', ')}`)
         writeWatchResults()
       }
     } catch {
-      console.log = originalLog
       // Dev server might be restarting — ignore
+    } finally {
+      console.log = originalLog
     }
   }
 
@@ -810,7 +814,7 @@ if (watchMode && !nativeMode) {
   }
 
   // Navigate to the start page and wait for it to settle
-  await gotoPage(page, urls[0], waitMs)
+  await gotoPage(page, urls[0])
 
   // NOW start listening — after initial build + navigation are done
   // Detect HMR updates across frameworks:
