@@ -723,7 +723,10 @@ if (watchMode && !nativeMode) {
 
     mkdirSync(outputDir, { recursive: true })
     for (const [wName, wData] of Object.entries(collected)) {
-      writeFileSync(join(outputDir, `${wName}.bones.json`), JSON.stringify(wData, null, 2))
+      const safeName = wName.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const wPath = resolve(outputDir, `${safeName}.bones.json`)
+      if (!wPath.startsWith(resolve(outputDir))) continue
+      writeFileSync(wPath, JSON.stringify(wData, null, 2))
     }
 
     const wRegistryLines = [
@@ -738,8 +741,9 @@ if (watchMode && !nativeMode) {
     }
     wRegistryLines.push('')
     for (const wn of writeNames) {
-      const wv = '_' + wn.replace(/[^a-zA-Z0-9]/g, '_')
-      wRegistryLines.push(`import ${wv} from './${wn}.bones.json'`)
+      const wsafe = wn.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const wv = '_' + wsafe.replace(/[^a-zA-Z0-9]/g, '_')
+      wRegistryLines.push(`import ${wv} from './${wsafe}.bones.json'`)
     }
     wRegistryLines.push('')
     if (hasRuntimeConfig) {
@@ -752,8 +756,9 @@ if (watchMode && !nativeMode) {
     }
     wRegistryLines.push('registerBones({')
     for (const wn of writeNames) {
-      const wv = '_' + wn.replace(/[^a-zA-Z0-9]/g, '_')
-      wRegistryLines.push(`  "${wn}": ${wv},`)
+      const wsafe = wn.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const wv = '_' + wsafe.replace(/[^a-zA-Z0-9]/g, '_')
+      wRegistryLines.push(`  "${wsafe}": ${wv},`)
     }
     wRegistryLines.push('})')
     wRegistryLines.push('')
@@ -808,8 +813,7 @@ if (watchMode && !nativeMode) {
     debounceTimer = setTimeout(async () => {
       if (isRecapturing) return
       isRecapturing = true
-      await recapture()
-      isRecapturing = false
+      try { await recapture() } finally { isRecapturing = false }
     }, 2000)
   }
 

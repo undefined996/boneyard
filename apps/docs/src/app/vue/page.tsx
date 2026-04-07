@@ -234,9 +234,13 @@ export default function VuePage() {
         <div className="mt-4">
           <CodeBlock language="vue" code={`<span class="text-stone-500">&lt;!-- Shimmer --&gt;</span>
 &lt;<span class="text-[#fde68a]">Skeleton</span> <span class="text-[#93c5fd]">name</span>=<span class="text-[#86efac]">"card"</span> <span class="text-[#93c5fd]">:loading</span>=<span class="text-[#86efac]">"true"</span> <span class="text-[#93c5fd]">animate</span>=<span class="text-[#86efac]">"shimmer"</span>&gt;
+  &lt;<span class="text-[#fde68a]">Card</span> /&gt;
+&lt;/<span class="text-[#fde68a]">Skeleton</span>&gt;
 
 <span class="text-stone-500">&lt;!-- Custom colors --&gt;</span>
-&lt;<span class="text-[#fde68a]">Skeleton</span> <span class="text-[#93c5fd]">name</span>=<span class="text-[#86efac]">"card"</span> <span class="text-[#93c5fd]">:loading</span>=<span class="text-[#86efac]">"true"</span> <span class="text-[#93c5fd]">color</span>=<span class="text-[#86efac]">"#fca5a5"</span> <span class="text-[#93c5fd]">dark-color</span>=<span class="text-[#86efac]">"#7f1d1d"</span>&gt;`} />
+&lt;<span class="text-[#fde68a]">Skeleton</span> <span class="text-[#93c5fd]">name</span>=<span class="text-[#86efac]">"card"</span> <span class="text-[#93c5fd]">:loading</span>=<span class="text-[#86efac]">"true"</span> <span class="text-[#93c5fd]">color</span>=<span class="text-[#86efac]">"#fca5a5"</span> <span class="text-[#93c5fd]">dark-color</span>=<span class="text-[#86efac]">"#7f1d1d"</span>&gt;
+  &lt;<span class="text-[#fde68a]">Card</span> /&gt;
+&lt;/<span class="text-[#fde68a]">Skeleton</span>&gt;`} />
         </div>
       </section>
 
@@ -278,7 +282,7 @@ export default function VuePage() {
           <ul className="text-[13px] text-[#78716c] space-y-1 list-disc pl-4">
             <li>See <a href="/install" className="text-stone-800 underline underline-offset-2">Getting Started</a> for the full web setup walkthrough</li>
             <li>See <a href="/output" className="text-stone-800 underline underline-offset-2">Output</a> to understand the .bones.json format</li>
-            <li>See <a href="/features" className="text-stone-800 underline underline-offset-2">React docs</a> for full CLI flags reference</li>
+            <li>See <a href="/features" className="text-stone-800 underline underline-offset-2">CLI &amp; Props Reference</a> for all flags and options</li>
           </ul>
         </div>
       </section>
