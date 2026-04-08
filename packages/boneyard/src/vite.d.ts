@@ -13,6 +13,8 @@ export interface BoneyardPluginOptions {
   skipInitial?: boolean
   /** Connect to existing Chrome via debug port instead of launching Playwright */
   cdp?: number
+  /** Routes to capture skeletons from (default: ['/']). The plugin visits each route at every breakpoint. */
+  routes?: string[]
 }
 
 export declare function boneyardPlugin(options?: BoneyardPluginOptions): Plugin

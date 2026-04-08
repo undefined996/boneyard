@@ -33,6 +33,8 @@ export interface BoneyardPluginOptions {
   skipInitial?: boolean
   /** Connect to existing Chrome via debug port instead of launching Playwright */
   cdp?: number
+  /** Routes to capture skeletons from (default: ['/']). The plugin visits each route at every breakpoint. */
+  routes?: string[]
 }
 
 export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
@@ -40,6 +42,7 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
     breakpoints = [375, 768, 1280],
     wait = 800,
     skipInitial = false,
+    routes = ['/'],
   } = options
 
   let outDir = options.out ?? ''
@@ -101,56 +104,63 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
       const fw = detectFramework(root)
       const collected: Record<string, any> = {}
 
-      for (const width of breakpoints) {
-        await page.setViewportSize({ width, height: 900 })
+      const pageUrls = routes.map(route => {
+        const r = route.startsWith('/') ? route : `/${route}`
+        return `${serverUrl}${r === '/' ? '' : r}`
+      })
 
-        try {
-          await page.goto(serverUrl, { waitUntil: 'networkidle', timeout: 15_000 })
-        } catch {
-          // networkidle can timeout — still try
-        }
+      for (const pageUrl of pageUrls) {
+        for (const width of breakpoints) {
+          await page.setViewportSize({ width, height: 900 })
 
-        if (wait > 0) await page.waitForTimeout(wait)
-
-        const bones = await page.evaluate(() => {
-          const fn = (window as any).__BONEYARD_SNAPSHOT
-          if (!fn) return {}
-
-          const elements = document.querySelectorAll('[data-boneyard]')
-          const results: Record<string, any> = {}
-
-          for (const el of elements) {
-            const name = el.getAttribute('data-boneyard')
-            if (!name || results[name]) continue
-
-            const configStr = el.getAttribute('data-boneyard-config')
-            const config = configStr ? JSON.parse(configStr) : undefined
-            const target = el.firstElementChild
-            if (!target) continue
-
-            try {
-              results[name] = fn(target, name, config)
-            } catch {}
+          try {
+            await page.goto(pageUrl, { waitUntil: 'networkidle', timeout: 15_000 })
+          } catch {
+            // networkidle can timeout — still try
           }
 
-          return results
-        })
+          if (wait > 0) await page.waitForTimeout(wait)
 
-        for (const [name, result] of Object.entries(bones)) {
-          if (!result) continue
-          const safeName = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-          if (!collected[safeName]) collected[safeName] = { breakpoints: {} }
+          const bones = await page.evaluate(() => {
+            const fn = (window as any).__BONEYARD_SNAPSHOT
+            if (!fn) return {}
 
-          // Compact bones
-          const r = result as any
-          if (r.bones) {
-            r.bones = r.bones.map((b: any) => {
-              const arr = [b.x, b.y, b.w, b.h, b.r]
-              if (b.c) arr.push(true)
-              return arr
-            })
+            const elements = document.querySelectorAll('[data-boneyard]')
+            const results: Record<string, any> = {}
+
+            for (const el of elements) {
+              const name = el.getAttribute('data-boneyard')
+              if (!name || results[name]) continue
+
+              const configStr = el.getAttribute('data-boneyard-config')
+              const config = configStr ? JSON.parse(configStr) : undefined
+              const target = el.firstElementChild
+              if (!target) continue
+
+              try {
+                results[name] = fn(target, name, config)
+              } catch {}
+            }
+
+            return results
+          })
+
+          for (const [name, result] of Object.entries(bones)) {
+            if (!result) continue
+            const safeName = name.replace(/[^a-zA-Z0-9_-]/g, '_')
+            if (!collected[safeName]) collected[safeName] = { breakpoints: {} }
+
+            // Compact bones
+            const r = result as any
+            if (r.bones) {
+              r.bones = r.bones.map((b: any) => {
+                const arr = [b.x, b.y, b.w, b.h, b.r]
+                if (b.c) arr.push(true)
+                return arr
+              })
+            }
+            collected[safeName].breakpoints[width] = r
           }
-          collected[safeName].breakpoints[width] = r
         }
       }
 
@@ -172,7 +182,9 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
       }
 
       // Generate registry
-      const registryImportPath = 'boneyard-js'
+      const registryImportPath = fw === 'vue' ? 'boneyard-js/vue'
+        : fw === 'svelte' ? 'boneyard-js/svelte'
+        : 'boneyard-js/react'
       const registryLines = [
         ...(fw === 'react' ? ['"use client"'] : []),
         '// Auto-generated by boneyard vite plugin — do not edit',
