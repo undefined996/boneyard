@@ -41,7 +41,7 @@ export default function RootLayout({
         {/* Centered container for sidebar + content */}
         <div className="mx-auto max-w-[1320px] flex min-h-[100dvh] md:h-screen px-3">
           <Sidebar />
-          <main className="flex-1 min-w-0 pt-16 md:pt-15 overflow-y-auto flex justify-center">
+          <main className="flex-1 min-w-0 pt-16 md:pt-15 md:overflow-y-auto flex justify-center">
             {children}
           </main>
         </div>
