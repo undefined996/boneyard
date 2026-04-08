@@ -50,10 +50,15 @@ export default function VuePage() {
           </div>
           <div>
             <p className="text-[13px] font-medium text-stone-500 mb-2">3. Generate bones</p>
+            <p className="text-[13px] text-stone-400 mb-2">Option A — Vite plugin (recommended, no second terminal):</p>
+            <CodeBlock filename="vite.config.ts" language="ts" code={`<span class="text-[#c084fc]">import</span> { boneyardPlugin } <span class="text-[#c084fc]">from</span> <span class="text-[#86efac]">'boneyard-js/vite'</span>
+<span class="text-[#c084fc]">import</span> vue <span class="text-[#c084fc]">from</span> <span class="text-[#86efac]">'@vitejs/plugin-vue'</span>
+
+<span class="text-[#c084fc]">export default</span> <span class="text-[#fde68a]">defineConfig</span>({
+  <span class="text-[#93c5fd]">plugins</span>: [<span class="text-[#fde68a]">vue</span>(), <span class="text-[#fde68a]">boneyardPlugin</span>()]
+})`} />
+            <p className="text-[13px] text-stone-400 mt-3 mb-2">Option B — CLI:</p>
             <CodeBlock language="bash" code="npx boneyard-js build" />
-            <p className="text-[13px] text-stone-400 mt-2">
-              Auto-detects your Vite/Nuxt dev server and captures all named skeletons.
-            </p>
           </div>
           <div>
             <p className="text-[13px] font-medium text-stone-500 mb-2">4. Import the registry</p>

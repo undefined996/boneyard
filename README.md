@@ -6,7 +6,7 @@
 
 Pixel-perfect skeleton loading screens, extracted from your real UI. No manual measurement, no hand-tuned placeholders.
 
-Works with **React**, **Svelte 5**, and **React Native**.
+Works with **React**, **Vue**, **Svelte 5**, **Angular**, and **React Native**.
 
 ## Quick start
 
@@ -29,13 +29,20 @@ function BlogPage() {
 }
 ```
 
-```bash
-npx boneyard-js build
-```
+### Vue
 
-```ts
-// Add once in your app entry
+```vue
+<script setup>
+import Skeleton from 'boneyard-js/vue'
 import './bones/registry'
+const loading = ref(true)
+</script>
+
+<template>
+  <Skeleton name="card" :loading="loading">
+    <Card />
+  </Skeleton>
+</template>
 ```
 
 ### Svelte 5
@@ -43,7 +50,7 @@ import './bones/registry'
 ```svelte
 <script>
   import Skeleton from 'boneyard-js/svelte'
-  import '../bones/registry'
+  import '$lib/bones/registry'
   let loading = true
 </script>
 
@@ -52,8 +59,19 @@ import './bones/registry'
 </Skeleton>
 ```
 
-```bash
-npx boneyard-js build
+### Angular
+
+```typescript
+import { SkeletonComponent } from 'boneyard-js/angular'
+
+@Component({
+  imports: [SkeletonComponent],
+  template: `
+    <boneyard-skeleton name="card" [loading]="isLoading">
+      <app-card />
+    </boneyard-skeleton>
+  `
+})
 ```
 
 ### React Native
@@ -71,30 +89,61 @@ npx boneyard-js build --native --out ./bones
 # Open your app on device — bones capture automatically
 ```
 
+## Generate bones
+
+```bash
+# CLI — works with any framework
+npx boneyard-js build
+
+# Watch mode — re-captures on HMR changes
+npx boneyard-js build --watch
+
+# React Native — scans from device
+npx boneyard-js build --native
+```
+
+Then import the registry once in your app entry:
+
 ```ts
-// Add once in your app entry, then reload
 import './bones/registry'
 ```
 
-No browser needed. The `--native` flag scans the actual native layout on your device via the React fiber tree.
+### Vite plugin
+
+For Vite-based projects (Vue, Svelte, React with Vite), use the plugin instead of the CLI — no second terminal needed:
+
+```ts
+// vite.config.ts
+import { boneyardPlugin } from 'boneyard-js/vite'
+
+export default defineConfig({
+  plugins: [boneyardPlugin()]
+})
+```
+
+Bones are captured automatically when the dev server starts and re-captured on every HMR update.
 
 ## How it works
 
-**Web (React / Svelte):** The CLI opens a headless browser, visits your app, finds every `<Skeleton name="...">`, and snapshots their layout at multiple breakpoints.
+**Web:** The CLI (or Vite plugin) opens a headless browser, visits your app, finds every `<Skeleton name="...">`, and snapshots their layout at multiple breakpoints.
 
 **React Native:** The `<Skeleton>` component auto-scans in dev mode when the CLI is running. It walks the fiber tree, measures views via `UIManager`, and sends bone data to the CLI. Zero overhead in production.
 
-Both output the same `.bones.json` format — cross-platform compatible.
+All frameworks output the same `.bones.json` format — cross-platform compatible.
 
-## CLI
+## CLI flags
 
-```bash
-npx boneyard-js build                              # auto-detect dev server
-npx boneyard-js build http://localhost:3000         # explicit URL
-npx boneyard-js build --native --out ./bones        # React Native
-npx boneyard-js build --breakpoints 390,820,1440    # custom breakpoints
-npx boneyard-js build --force                       # skip incremental cache
-```
+| Flag | Default | Description |
+|------|---------|-------------|
+| `[url]` | auto-detected | URL to visit |
+| `--breakpoints` | 375,768,1280 | Viewport widths, comma-separated |
+| `--wait` | 800 | ms to wait after page load |
+| `--out` | ./src/bones | Output directory |
+| `--force` | — | Skip incremental cache |
+| `--watch` | — | Re-capture on HMR changes |
+| `--native` | — | React Native device scanning |
+| `--no-scan` | — | Skip filesystem route scanning |
+| `--env-file` | — | Load env vars from file |
 
 ## Props
 
@@ -131,8 +180,11 @@ Save as `boneyard.config.json`. Per-component props override config values.
 |--------|-----|
 | `boneyard-js` | `snapshotBones`, `renderBones`, `computeLayout` |
 | `boneyard-js/react` | React `<Skeleton>` |
-| `boneyard-js/native` | React Native `<Skeleton>` |
+| `boneyard-js/vue` | Vue `<Skeleton>` |
 | `boneyard-js/svelte` | Svelte `<Skeleton>` |
+| `boneyard-js/angular` | Angular `<boneyard-skeleton>` |
+| `boneyard-js/native` | React Native `<Skeleton>` |
+| `boneyard-js/vite` | Vite plugin `boneyardPlugin()` |
 
 ## Links
 

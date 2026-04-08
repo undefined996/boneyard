@@ -14,6 +14,7 @@ const gettingStarted = [
   { href: "/overview", label: "Overview" },
   { href: "/how-it-works", label: "How it works" },
   { href: "/install", label: "Install" },
+  { href: "/cli", label: "CLI" },
   { href: "/output", label: "Output" },
 ];
 

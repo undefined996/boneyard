@@ -262,6 +262,21 @@ Runtime defaults (\`color\`, \`darkColor\`, \`animate\`) are automatically inclu
 - \`boneyard-js/svelte\` — Skeleton component, registerBones
 - \`boneyard-js/vue\` — Skeleton component, registerBones, configureBoneyard
 - \`boneyard-js/angular\` — SkeletonComponent, registerBones, configureBoneyard
+- \`boneyard-js/vite\` — boneyardPlugin() Vite plugin for auto-capture
+
+## Vite plugin
+
+For Vite-based projects (Vue, Svelte, React with Vite), add the plugin to your vite.config.ts — no CLI needed:
+
+\`\`\`ts
+import { boneyardPlugin } from 'boneyard-js/vite'
+
+export default defineConfig({
+  plugins: [boneyardPlugin()]
+})
+\`\`\`
+
+Captures bones on dev server start and re-captures on every HMR update. Options: \`out\`, \`breakpoints\`, \`wait\`, \`framework\`, \`skipInitial\`.
 `;
 
 export default function AgentPage() {
