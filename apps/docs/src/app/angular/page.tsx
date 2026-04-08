@@ -126,6 +126,18 @@ export default function AngularPage() {
                 <td className="px-4 py-2">Animation style (also accepts true/false)</td>
               </tr>
               <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 font-mono text-stone-800">stagger</td>
+                <td className="px-4 py-2">number | boolean</td>
+                <td className="px-4 py-2">false</td>
+                <td className="px-4 py-2">Stagger delay between bones in ms (true = 80ms)</td>
+              </tr>
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 font-mono text-stone-800">transition</td>
+                <td className="px-4 py-2">number | boolean</td>
+                <td className="px-4 py-2">false</td>
+                <td className="px-4 py-2">Fade out duration in ms when loading ends (true = 300ms)</td>
+              </tr>
+              <tr className="border-b border-stone-100">
                 <td className="px-4 py-2 font-mono text-stone-800">cssClass</td>
                 <td className="px-4 py-2">string</td>
                 <td className="px-4 py-2">—</td>

@@ -228,6 +228,18 @@ export default function ReactNativePage() {
                 <td className="px-4 py-2">—</td>
                 <td className="px-4 py-2">Additional style for the container</td>
               </tr>
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 font-mono text-stone-800">stagger</td>
+                <td className="px-4 py-2">number | boolean</td>
+                <td className="px-4 py-2">false</td>
+                <td className="px-4 py-2">Stagger delay between bones in ms (true = 80ms)</td>
+              </tr>
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 font-mono text-stone-800">transition</td>
+                <td className="px-4 py-2">number | boolean</td>
+                <td className="px-4 py-2">false</td>
+                <td className="px-4 py-2">Fade out duration in ms when loading ends (true = 300ms)</td>
+              </tr>
               <tr>
                 <td className="px-4 py-2 font-mono text-stone-800">fallback</td>
                 <td className="px-4 py-2">ReactNode</td>

@@ -261,6 +261,18 @@ Uses Svelte 5 snippets for \`fallback\` and \`fixture\`. Same CLI: \`npx boneyar
 - \`boneyard-js/svelte\` — Skeleton component, registerBones
 - \`boneyard-js/vue\` — Skeleton component, registerBones, configureBoneyard
 - \`boneyard-js/angular\` — SkeletonComponent, registerBones, configureBoneyard
+- \`boneyard-js/vite\` — boneyardPlugin() Vite plugin for auto-capture
+
+## Vite plugin
+
+For Vite projects, add the plugin instead of using the CLI:
+
+\`\`\`ts
+import { boneyardPlugin } from 'boneyard-js/vite'
+export default defineConfig({ plugins: [boneyardPlugin()] })
+\`\`\`
+
+Auto-captures on dev server start and HMR updates. Options: \`out\`, \`breakpoints\`, \`wait\`, \`framework\`, \`skipInitial\`.
 `;
 
 export async function GET() {

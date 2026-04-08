@@ -310,29 +310,36 @@ function getTextureStyle(texture: Texture, color: string, isDark = false): { cla
 // ── Skeleton renderer ──
 
 function SkeletonRenderer({
-  bones, height, color, texture, dark = false,
+  bones, height, color, texture, dark = false, stagger = 0,
 }: {
   bones: { x: number; y: number; w: number; h: number; r: number | string; c?: boolean }[];
   height: number;
   color: string;
   texture: Texture;
   dark?: boolean;
+  stagger?: number;
 }) {
+  const uid = useRef(Math.random().toString(36).slice(2, 8)).current;
   return (
     <div className="relative w-full" style={{ height }}>
       {bones.map((b, i) => {
         const r = typeof b.r === "string" ? b.r : `${b.r}px`;
-        // Container bones are lighter so child bones stand out on top
         const boneColor = b.c ? lightenHex(color, dark ? 0.03 : 0.45) : color;
         const { className, style: textureStyle } = getTextureStyle(texture, boneColor, dark);
+        const staggerStyle: React.CSSProperties = stagger > 0
+          ? { opacity: 0, animation: `by-${uid} 0.3s ease-out ${i * stagger}ms forwards` }
+          : {};
         return (
           <div
             key={i}
             className={`absolute ${className}`}
-            style={{ left: `${b.x}%`, top: b.y, width: `${b.w}%`, height: b.h, borderRadius: r, ...textureStyle }}
+            style={{ left: `${b.x}%`, top: b.y, width: `${b.w}%`, height: b.h, borderRadius: r, ...textureStyle, ...staggerStyle }}
           />
         );
       })}
+      {stagger > 0 && (
+        <style>{`@keyframes by-${uid}{from{opacity:0}to{opacity:1}}`}</style>
+      )}
     </div>
   );
 }
@@ -341,6 +348,71 @@ function SkeletonRenderer({
 
 // Which demo keys actually have variant data (cycling is only useful for these)
 const HAS_VARIANTS = new Set(["blog", "product"]);
+
+// ── Showcase sequence steps ──
+interface ShowcaseStep {
+  label: string
+  apply: (s: {
+    setColor: (c: string) => void
+    setTexture: (t: Texture) => void
+    setDark: (d: boolean) => void
+    setStaggerVal: (v: number) => void
+    setTransitionVal: (v: number) => void
+    setShowContent: (v: boolean) => void
+    setSkeletonKey: (fn: (k: number) => number) => void
+  }) => void
+  durationMs: number
+}
+
+const SHOWCASE_STEPS: ShowcaseStep[] = [
+  {
+    label: "Pulse animation",
+    durationMs: 2200,
+    apply: (s) => {
+      s.setShowContent(false); s.setTexture("pulse"); s.setDark(false);
+      s.setColor("#e0e0e0"); s.setStaggerVal(0); s.setTransitionVal(0);
+      s.setSkeletonKey(k => k + 1);
+    },
+  },
+  {
+    label: "Stagger entrance",
+    durationMs: 2500,
+    apply: (s) => { s.setStaggerVal(100); s.setSkeletonKey(k => k + 1); },
+  },
+  {
+    label: "Shimmer texture",
+    durationMs: 2500,
+    apply: (s) => { s.setTexture("shimmer"); s.setStaggerVal(0); s.setSkeletonKey(k => k + 1); },
+  },
+  {
+    label: "Dark mode",
+    durationMs: 2200,
+    apply: (s) => { s.setDark(true); s.setColor("#2a2a2a"); },
+  },
+  {
+    label: "Stagger + dark",
+    durationMs: 2500,
+    apply: (s) => { s.setStaggerVal(80); s.setTexture("pulse"); s.setSkeletonKey(k => k + 1); },
+  },
+  {
+    label: "Transition fade out",
+    durationMs: 2200,
+    apply: (s) => { s.setTransitionVal(400); s.setStaggerVal(0); s.setShowContent(true); },
+  },
+  {
+    label: "Back to skeleton",
+    durationMs: 2200,
+    apply: (s) => { s.setShowContent(false); s.setSkeletonKey(k => k + 1); },
+  },
+  {
+    label: "Light mode reset",
+    durationMs: 2000,
+    apply: (s) => {
+      s.setDark(false); s.setColor("#e0e0e0"); s.setTransitionVal(0);
+      s.setTexture("pulse"); s.setSkeletonKey(k => k + 1);
+    },
+  },
+];
 
 function DemoCard({ demoKey, label, description, Component }: { demoKey: string; label: string; description: string; Component: () => React.JSX.Element }) {
   const uiRef = useRef<HTMLDivElement>(null);
@@ -351,6 +423,39 @@ function DemoCard({ demoKey, label, description, Component }: { demoKey: string;
   const [color, setColor] = useState("#e0e0e0");
   const [texture, setTexture] = useState<Texture>("pulse");
   const [dark, setDark] = useState(false);
+  const [staggerVal, setStaggerVal] = useState(0);
+  const [transitionVal, setTransitionVal] = useState(0);
+  const [showContent, setShowContent] = useState(false);
+  const [skeletonKey, setSkeletonKey] = useState(0);
+
+  // Showcase auto-play
+  const [showcaseActive, setShowcaseActive] = useState(false);
+  const [showcaseStep, setShowcaseStep] = useState(-1);
+  const showcaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!showcaseActive) {
+      if (showcaseTimerRef.current) clearTimeout(showcaseTimerRef.current);
+      setShowcaseStep(-1);
+      return;
+    }
+    let step = 0;
+    const setters = { setColor, setTexture, setDark, setStaggerVal, setTransitionVal, setShowContent, setSkeletonKey };
+
+    function runStep() {
+      if (step >= SHOWCASE_STEPS.length) {
+        step = 0; // loop
+      }
+      setShowcaseStep(step);
+      SHOWCASE_STEPS[step].apply(setters);
+      showcaseTimerRef.current = setTimeout(() => {
+        step++;
+        runStep();
+      }, SHOWCASE_STEPS[step].durationMs);
+    }
+    runStep();
+    return () => { if (showcaseTimerRef.current) clearTimeout(showcaseTimerRef.current); };
+  }, [showcaseActive]);
   const handleDarkToggle = () => {
     setDark((d) => {
       const next = !d;
@@ -432,20 +537,40 @@ function DemoCard({ demoKey, label, description, Component }: { demoKey: string;
           </div>
         </div>
 
-        {/* Right: Skeleton */}
+        {/* Right: Skeleton / Content */}
         <div>
-          <div className="text-[10px] font-mono text-stone-400 uppercase tracking-wider mb-1.5 px-1">Skeleton</div>
-          <div className={`rounded-xl border p-4 overflow-hidden transition-colors duration-200 ${dark ? "bg-[#1c1917] border-stone-700" : "bg-white border-stone-200"}`}>
-            {skeleton ? (
-              <SkeletonRenderer
-                bones={skeleton.bones}
-                height={skeleton.height}
-                color={color}
-                texture={texture}
-                dark={dark}
-              />
-            ) : (
-              <div />
+          <div className="text-[10px] font-mono text-stone-400 uppercase tracking-wider mb-1.5 px-1">
+            {showContent ? 'Content' : 'Skeleton'}
+          </div>
+          <div className={`rounded-xl border p-4 overflow-hidden transition-colors duration-200 relative ${dark ? "bg-[#1c1917] border-stone-700" : "bg-white border-stone-200"}`}>
+            {/* Content layer — visibility hidden keeps layout, skeleton covers it */}
+            <div
+              className={dark ? "[&_*]:text-stone-300 [&_.text-stone-800]:text-stone-200 [&_.text-stone-700]:text-stone-300 [&_.text-stone-600]:text-stone-400 [&_.text-stone-500]:text-stone-400 [&_.bg-stone-100]:bg-[#2B2B2B] [&_.bg-stone-50]:bg-[#2B2B2B]" : ""}
+            >
+              <Component />
+            </div>
+            {/* Skeleton overlay */}
+            {skeleton && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '1rem',
+                  opacity: showContent ? 0 : 1,
+                  transition: transitionVal > 0 ? `opacity ${transitionVal}ms ease-out` : undefined,
+                  pointerEvents: showContent ? 'none' : undefined,
+                  background: dark ? '#1c1917' : 'white',
+                }}
+              >
+                <SkeletonRenderer
+                  key={skeletonKey}
+                  bones={skeleton.bones}
+                  height={skeleton.height}
+                  color={color}
+                  texture={texture}
+                  dark={dark}
+                  stagger={staggerVal}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -499,6 +624,93 @@ function DemoCard({ demoKey, label, description, Component }: { demoKey: string;
             </TabsList>
           </Tabs>
         </div>
+
+        {/* Stagger / Transition / Toggle / Reload row */}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-stone-400 font-mono">stagger</span>
+            <input
+              type="range"
+              min={0}
+              max={300}
+              step={10}
+              value={staggerVal}
+              onChange={(e) => { setStaggerVal(Number(e.target.value)); setSkeletonKey(k => k + 1) }}
+              className="w-16 h-1 accent-stone-400"
+            />
+            <span className="text-[10px] text-stone-500 font-mono w-8">{staggerVal}ms</span>
+          </div>
+
+          <div className="w-px h-4 bg-stone-200" />
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-stone-400 font-mono">transition</span>
+            <input
+              type="range"
+              min={0}
+              max={1000}
+              step={50}
+              value={transitionVal}
+              onChange={(e) => setTransitionVal(Number(e.target.value))}
+              className="w-16 h-1 accent-stone-400"
+            />
+            <span className="text-[10px] text-stone-500 font-mono w-8">{transitionVal}ms</span>
+          </div>
+
+          <div className="w-px h-4 bg-stone-200" />
+
+          <button
+            onClick={() => {
+              if (showContent && transitionVal > 0) {
+                setShowContent(false)
+                setSkeletonKey(k => k + 1)
+              } else {
+                setShowContent(!showContent)
+              }
+            }}
+            className="h-7 px-2.5 rounded-lg text-[11px] font-medium bg-stone-100 text-stone-500 hover:bg-stone-200/70 transition-colors"
+          >
+            {showContent ? 'Show Skeleton' : 'Show Content'}
+          </button>
+
+          <button
+            onClick={() => { setShowContent(false); setSkeletonKey(k => k + 1) }}
+            className="h-7 px-2 rounded-lg text-[11px] font-medium bg-stone-100 text-stone-500 hover:bg-stone-200/70 transition-colors"
+            title="Replay stagger animation"
+          >
+            Reload
+          </button>
+
+          <div className="w-px h-4 bg-stone-200" />
+
+          <button
+            onClick={() => setShowcaseActive(a => !a)}
+            className={`h-7 px-2.5 rounded-lg text-[11px] font-medium transition-colors ${
+              showcaseActive
+                ? "bg-stone-800 text-white"
+                : "bg-stone-100 text-stone-500 hover:bg-stone-200/70"
+            }`}
+          >
+            {showcaseActive ? "Stop" : "Showcase"}
+          </button>
+        </div>
+
+        {/* Showcase progress */}
+        {showcaseActive && showcaseStep >= 0 && (
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex gap-1">
+              {SHOWCASE_STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    i === showcaseStep ? "w-4 bg-stone-700" : i < showcaseStep ? "w-1.5 bg-stone-400" : "w-1.5 bg-stone-200"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] text-stone-400 font-mono">{SHOWCASE_STEPS[showcaseStep].label}</span>
+          </div>
+        )}
       </div>
 
       {/* Auto-extracted bones JSON */}
@@ -517,7 +729,9 @@ function DemoCard({ demoKey, label, description, Component }: { demoKey: string;
         const compName = label.replace(/\s+/g, "");
         const colorProp = color !== "#d4d4d4" ? `\n      color="${color}"` : "";
         const animateProp = texture === "solid" ? "\n      animate={false}" : "";
-        const codeStr = `import { Skeleton } from 'boneyard-js/react'\n\nfunction ${compName}Page() {\n  const { data, isLoading } = useFetch('/api/${demoKey}')\n\n  return (\n    <Skeleton\n      loading={isLoading}${colorProp}${animateProp}\n    >\n      {data && <${compName} data={data} />}\n    </Skeleton>\n  )\n}`;
+        const staggerProp = staggerVal > 0 ? `\n      stagger={${staggerVal}}` : "";
+        const transitionProp = transitionVal > 0 ? `\n      transition={${transitionVal}}` : "";
+        const codeStr = `import { Skeleton } from 'boneyard-js/react'\n\nfunction ${compName}Page() {\n  const { data, isLoading } = useFetch('/api/${demoKey}')\n\n  return (\n    <Skeleton\n      loading={isLoading}${colorProp}${animateProp}${staggerProp}${transitionProp}\n    >\n      {data && <${compName} data={data} />}\n    </Skeleton>\n  )\n}`;
         return (
           <div className="relative rounded-xl border border-stone-200 bg-[#1a1a1a] p-4 mt-2 max-h-[400px] overflow-auto">
             <CopyButton text={codeStr} />
@@ -530,6 +744,8 @@ function DemoCard({ demoKey, label, description, Component }: { demoKey: string;
               <span className="text-stone-300">      </span><span className="text-[#93c5fd]">loading</span><span className="text-stone-300">={"{isLoading}"}</span>{"\n"}
               {color !== "#d4d4d4" && <><span className="text-stone-300">      </span><span className="text-[#93c5fd]">color</span><span className="text-stone-300">=</span><span className="text-[#86efac]">&quot;{color}&quot;</span>{"\n"}</>}
               {texture === "solid" && <><span className="text-stone-300">      </span><span className="text-[#93c5fd]">animate</span><span className="text-stone-300">={"{false}"}</span>{"\n"}</>}
+              {staggerVal > 0 && <><span className="text-stone-300">      </span><span className="text-[#93c5fd]">stagger</span><span className="text-stone-300">={"{"}{staggerVal}{"}"}</span>{"\n"}</>}
+              {transitionVal > 0 && <><span className="text-stone-300">      </span><span className="text-[#93c5fd]">transition</span><span className="text-stone-300">={"{"}{transitionVal}{"}"}</span>{"\n"}</>}
               <span className="text-stone-300">    </span><span className="text-stone-500">{">"}</span>{"\n"}
               <span className="text-stone-300">      {"{data && "}</span><span className="text-stone-500">{"<"}</span><span className="text-[#fde68a]">{compName}</span><span className="text-stone-300"> data={"{data}"} </span><span className="text-stone-500">{"/>"}</span><span className="text-stone-300">{"}"}</span>{"\n"}
               <span className="text-stone-300">    </span><span className="text-stone-500">{"</"}</span><span className="text-[#fde68a]">Skeleton</span><span className="text-stone-500">{">"}</span>{"\n"}

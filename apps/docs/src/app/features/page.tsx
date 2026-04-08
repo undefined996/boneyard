@@ -5,8 +5,7 @@ const tocItems = [
   { id: "quick-start", label: "Quick start" },
   { id: "skeleton-props", label: "<Skeleton> props" },
   { id: "hiding-elements", label: "Hiding elements" },
-  { id: "build-command", label: "Build command" },
-  { id: "config-file", label: "Config file" },
+  { id: "build-command", label: "CLI & Vite plugin" },
 ];
 
 export default function FeaturesPage() {
@@ -135,6 +134,18 @@ export default function FeaturesPage() {
                 <td className="px-4 py-2">—</td>
                 <td className="px-4 py-2">Mock content for CLI capture (dev only)</td>
               </tr>
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 font-mono text-stone-800">stagger</td>
+                <td className="px-4 py-2">number | boolean</td>
+                <td className="px-4 py-2">false</td>
+                <td className="px-4 py-2">Stagger delay between bones in ms (true = 80ms)</td>
+              </tr>
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 font-mono text-stone-800">transition</td>
+                <td className="px-4 py-2">number | boolean</td>
+                <td className="px-4 py-2">false</td>
+                <td className="px-4 py-2">Fade out duration in ms when loading ends (true = 300ms)</td>
+              </tr>
               <tr>
                 <td className="px-4 py-2 font-mono text-stone-800">snapshotConfig</td>
                 <td className="px-4 py-2">SnapshotConfig</td>
@@ -233,123 +244,13 @@ export default function FeaturesPage() {
       {/* ── CLI ── */}
       <section>
         <div className="section-divider" id="build-command">
-          <span>Build command</span>
-        </div>
-
-        <p className="text-[14px] text-[#78716c] leading-relaxed mt-4 mb-4">
-          This is how you generate the bones JSON files. Run it with your dev server running:
-        </p>
-
-        <CodeBlock language="bash" code="npx boneyard-js build" />
-
-        <p className="text-[14px] text-[#78716c] leading-relaxed mt-4 mb-4">
-          It opens a headless browser, visits your app, finds every <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">&lt;Skeleton name=&quot;...&quot;&gt;</code>,
-          measures the layout at different screen sizes, and saves the result as JSON files you can import.
-        </p>
-
-        <div className="mt-4 rounded-lg border border-stone-200 overflow-hidden">
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="bg-stone-50 border-b border-stone-200">
-                <th className="text-left px-4 py-2 font-medium text-stone-700">Flag</th>
-                <th className="text-left px-4 py-2 font-medium text-stone-700">Default</th>
-                <th className="text-left px-4 py-2 font-medium text-stone-700">Description</th>
-              </tr>
-            </thead>
-            <tbody className="text-[#78716c]">
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">[url]</td>
-                <td className="px-4 py-2">auto-detected</td>
-                <td className="px-4 py-2">URL to visit (scans ports 3000, 5173, 8080... if omitted)</td>
-              </tr>
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">--breakpoints</td>
-                <td className="px-4 py-2">375,768,1280</td>
-                <td className="px-4 py-2">Viewport widths to capture, comma-separated</td>
-              </tr>
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">--wait</td>
-                <td className="px-4 py-2">800</td>
-                <td className="px-4 py-2">ms to wait after page load before capturing</td>
-              </tr>
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">--out</td>
-                <td className="px-4 py-2">./src/bones</td>
-                <td className="px-4 py-2">Output directory for .bones.json files</td>
-              </tr>
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">--force</td>
-                <td className="px-4 py-2">—</td>
-                <td className="px-4 py-2">Skip incremental cache, recapture all</td>
-              </tr>
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">--watch</td>
-                <td className="px-4 py-2">—</td>
-                <td className="px-4 py-2">Re-capture when your app changes (listens for HMR)</td>
-              </tr>
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">--no-scan</td>
-                <td className="px-4 py-2">—</td>
-                <td className="px-4 py-2">Skip filesystem route scanning (only crawl links)</td>
-              </tr>
-              <tr className="border-b border-stone-100">
-                <td className="px-4 py-2 font-mono text-stone-800">--env-file &lt;path&gt;</td>
-                <td className="px-4 py-2">—</td>
-                <td className="px-4 py-2">Load env vars from file (useful for Bun runtime)</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 font-mono text-stone-800">--native</td>
-                <td className="px-4 py-2">—</td>
-                <td className="px-4 py-2">React Native mode (see <a href="/react-native" className="text-stone-800 underline underline-offset-2">React Native docs</a>)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-6">
-          <p className="text-[13px] font-semibold text-stone-700 mb-3">Examples</p>
-          <CodeBlock language="bash" code={`<span class="text-stone-500"># Auto-detect server, default breakpoints</span>
-npx boneyard-js build
-
-<span class="text-stone-500"># Specific page</span>
-npx boneyard-js build http://localhost:3000/dashboard
-
-<span class="text-stone-500"># Custom breakpoints + output dir</span>
-npx boneyard-js build --breakpoints 390,820,1440 --out ./public/bones
-
-<span class="text-stone-500"># Force recapture all (skip incremental cache)</span>
-npx boneyard-js build --force
-
-<span class="text-stone-500"># Watch mode — re-captures when your app changes</span>
-npx boneyard-js build --watch`} />
-        </div>
-
-        <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-4 space-y-2">
-          <p className="text-[13px] font-medium text-stone-700">Incremental builds</p>
-          <p className="text-[13px] text-[#78716c]">
-            The CLI hashes each skeleton&apos;s content and skips unchanged components on subsequent builds.
-            Only modified skeletons are recaptured — saving time on large apps. Use{" "}
-            <code className="text-[12px] bg-white px-1 py-0.5 rounded border border-stone-200">--force</code>{" "}
-            to bypass the cache and recapture everything.
-          </p>
-        </div>
-
-        <div className="border-l-2 border-stone-300 pl-4 py-1 mt-4">
-          <p className="text-[13px] text-[#78716c]">
-            Playwright is included as a dependency. On first run you may need to install the browser:{" "}
-            <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">npx playwright install chromium</code>
-          </p>
-        </div>
-      </section>
-
-      {/* ── Config file ── */}
-      <section>
-        <div className="section-divider" id="config-file">
-          <span>Config file</span>
+          <span>CLI &amp; Vite plugin</span>
         </div>
         <p className="text-[14px] text-[#78716c] leading-relaxed mt-4">
-          See <a href="/install#config-file" className="text-stone-800 underline underline-offset-2">Install &rarr; Config file</a> for
-          the full <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">boneyard.config.json</code> reference. Works with all frameworks.
+          See <a href="/cli" className="text-stone-800 underline underline-offset-2">CLI</a> for
+          all build flags, watch mode, Vite plugin, and React Native scanning.
+          See <a href="/install#config-file" className="text-stone-800 underline underline-offset-2">Install</a> for
+          the <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">boneyard.config.json</code> reference.
         </p>
       </section>
     </div>

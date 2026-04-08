@@ -82,6 +82,7 @@ let nativeMode = false
 let noScan = false
 let envFilePath = null
 let watchMode = false
+let cdpPort = null
 
 for (let i = 1; i < args.length; i++) {
   if (args[i] === '--out') {
@@ -107,6 +108,12 @@ for (let i = 1; i < args.length; i++) {
     }
   } else if (args[i] === '--watch') {
     watchMode = true
+  } else if (args[i] === '--cdp') {
+    cdpPort = Number(args[++i])
+    if (!cdpPort || cdpPort < 1) {
+      console.error('  boneyard: --cdp requires a valid port number (e.g. --cdp 9222)')
+      process.exit(1)
+    }
   } else if (!args[i].startsWith('--')) {
     urls.push(args[i])
   }
@@ -342,26 +349,45 @@ console.log(`  \x1b[2m${'─'.repeat(50)}\x1b[0m`)
 console.log(`  \x1b[2mbreakpoints\x1b[0m  ${breakpoints.join(', ')}px`)
 console.log(`  \x1b[2moutput\x1b[0m       ${outDir}`)
 if (watchMode) console.log(`  \x1b[2mwatch\x1b[0m        on`)
+if (cdpPort) console.log(`  \x1b[2mcdp\x1b[0m          localhost:${cdpPort}`)
 console.log('')
 
 let browser
-try {
-  browser = await chromium.launch()
-} catch (e) {
-  if (e.message.includes("Executable doesn't exist")) {
-    console.log('  boneyard: installing chromium...\n')
-    const { execSync } = await import('child_process')
-    const { createRequire } = await import('module')
-    const require = createRequire(import.meta.url)
-    const pwPath = dirname(require.resolve('playwright/package.json'))
-    const playwrightCli = join(pwPath, 'cli.js')
-    execSync(`node "${playwrightCli}" install chromium`, { stdio: 'inherit' })
+let cdpContext = null
+if (cdpPort) {
+  try {
+    browser = await chromium.connectOverCDP(`http://localhost:${cdpPort}`)
+    cdpContext = await browser.newContext()
+    console.log(`  \x1b[2mConnected to Chrome on port ${cdpPort}\x1b[0m\n`)
+  } catch (e) {
+    console.error(
+      `\nboneyard: could not connect to Chrome on port ${cdpPort}.\n\n` +
+      'Make sure Chrome is running with:\n' +
+      `  google-chrome --remote-debugging-port=${cdpPort}\n` +
+      '  # or on macOS:\n' +
+      `  /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=${cdpPort}\n`
+    )
+    process.exit(1)
+  }
+} else {
+  try {
     browser = await chromium.launch()
-  } else {
-    throw e
+  } catch (e) {
+    if (e.message.includes("Executable doesn't exist")) {
+      console.log('  boneyard: installing chromium...\n')
+      const { execSync } = await import('child_process')
+      const { createRequire } = await import('module')
+      const require = createRequire(import.meta.url)
+      const pwPath = dirname(require.resolve('playwright/package.json'))
+      const playwrightCli = join(pwPath, 'cli.js')
+      execSync(`node "${playwrightCli}" install chromium`, { stdio: 'inherit' })
+      browser = await chromium.launch()
+    } else {
+      throw e
+    }
   }
 }
-const page = await browser.newPage()
+const page = cdpContext ? await cdpContext.newPage() : await browser.newPage()
 
 // Apply auth if configured
 if (config.auth) {
@@ -744,7 +770,10 @@ for (const pageUrl of toVisit) {
   await capturePage(pageUrl)
 }
 
-if (!watchMode) await browser.close()
+if (!watchMode) {
+  if (cdpContext) await cdpContext.close()
+  await browser.close()
+}
 
 // ── Write files ───────────────────────────────────────────────────────────────
 
@@ -1006,6 +1035,7 @@ if (watchMode && !nativeMode) {
   // Graceful shutdown
   process.on('SIGINT', async () => {
     if (debounceTimer) clearTimeout(debounceTimer)
+    if (cdpContext) await cdpContext.close()
     await browser.close()
     console.log('\n  \x1b[2mWatch stopped.\x1b[0m\n')
     process.exit(0)
@@ -1241,6 +1271,9 @@ function printHelp() {
     --force              Recapture all skeletons      (skip incremental cache)
     --no-scan            Skip filesystem route scanning (only crawl links)
     --watch              Re-capture when your app changes (listens for HMR)
+    --cdp <port>         Connect to existing Chrome via debug port instead
+                         of launching Playwright (reuses cookies, auth, state).
+                         Launch Chrome with: --remote-debugging-port=<port>
     --native             React Native mode — captures bones from a running
                          native app on device/simulator (no browser needed).
                          Registry imports from boneyard-js/native.

@@ -17,6 +17,8 @@ export function TableOfContents({ items }: TocProps) {
   useEffect(() => {
     if (items.length === 0) return;
 
+    const main = document.querySelector("main");
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -25,7 +27,7 @@ export function TableOfContents({ items }: TocProps) {
           }
         }
       },
-      { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
+      { root: main, rootMargin: "-80px 0px -30% 0px", threshold: 0 }
     );
 
     for (const item of items) {
@@ -39,7 +41,7 @@ export function TableOfContents({ items }: TocProps) {
   if (items.length === 0) return null;
 
   return (
-    <nav className="hidden xl:block w-[180px] shrink-0 sticky top-28 self-start">
+    <nav className="hidden xl:block fixed right-[max(1rem,calc((100vw-1320px)/2+1rem))] top-28 w-[180px] max-h-[calc(100vh-140px)] overflow-y-auto">
       <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-3">
         On this page
       </p>
