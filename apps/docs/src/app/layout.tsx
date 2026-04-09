@@ -39,9 +39,9 @@ export default function RootLayout({
           <span className="text-stone-500">&rarr;</span>
         </a>
         {/* Centered container for sidebar + content */}
-        <div className="mx-auto max-w-[1320px] flex min-h-[100dvh] md:h-screen px-3">
+        <div className="mx-auto max-w-[1320px] md:flex md:h-screen px-3">
           <Sidebar />
-          <main className="flex-1 min-w-0 pt-16 md:pt-15 md:overflow-y-auto flex justify-center">
+          <main className="md:flex-1 md:min-w-0 pt-16 md:pt-15 md:overflow-y-auto flex justify-center">
             {children}
           </main>
         </div>
