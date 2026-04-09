@@ -205,6 +205,8 @@ import { Skeleton } from 'boneyard-js/native'
 
 Generate bones: \`npx boneyard-js build --native --out ./bones\`, then open your app on device. The Skeleton component auto-scans in dev mode — walks the React fiber tree, measures each view via UIManager, and sends bone data to the CLI. In production, scan code is completely inactive.
 
+**Dynamic Type:** Always generate bones at default font scale (1.0). At runtime, boneyard renders children invisibly behind the skeleton overlay to measure the real content height, then scales bone positions proportionally via \`scaleY\`. This handles iOS Dynamic Type and Android font scaling automatically — no need to capture at multiple sizes.
+
 After generating, add \`import './bones/registry'\` and reload the app.
 
 ## Preact

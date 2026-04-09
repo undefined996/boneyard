@@ -469,9 +469,10 @@ export function Skeleton({
   const isDark = dark ?? systemScheme === 'dark'
 
   const [containerWidth, setContainerWidth] = useState(0)
+  const [containerHeight, setContainerHeight] = useState(0)
   const containerRef = useRef<View>(null)
   const hasScanned = useRef(false)
-  const { width: screenWidth } = useWindowDimensions()
+  const { width: screenWidth, fontScale } = useWindowDimensions()
 
   const effectiveColor = color ?? globalConfig.color ?? (isDark ? '#3a3a3c' : '#d4d4d4')
   const effectiveDarkColor = darkColor ?? globalConfig.darkColor ?? '#3a3a3c'
@@ -487,11 +488,13 @@ export function Skeleton({
   const shimmerAnim = useShimmerAnimation(loading && animationStyle === 'shimmer')
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
-    const { width } = e.nativeEvent.layout
+    const { width, height } = e.nativeEvent.layout
     setContainerWidth(Math.round(width))
+    if (height > 0) setContainerHeight(Math.round(height))
   }, [])
 
   // Dev scan — when CLI is running, auto-capture bones from children
+  // Re-scans when fontScale changes so bones match Dynamic Type sizing
   useEffect(() => {
     if (typeof __DEV__ === 'undefined' || !__DEV__ || !name || hasScanned.current) return
     hasScanned.current = true
@@ -501,7 +504,7 @@ export function Skeleton({
       }
     }, 800)
     return () => clearTimeout(timer)
-  }, [name, screenWidth])
+  }, [name, screenWidth, fontScale])
 
   const effectiveBones = initialBones ?? (name ? bonesRegistry.get(name) : undefined)
   const activeBones = effectiveBones
@@ -539,12 +542,21 @@ export function Skeleton({
 
   const showSkeleton = (loading || transitioning) && activeBones
   const showFallback = loading && !activeBones && !transitioning
-  const boneHeight = activeBones?.height ?? 0
+
+  // Scale vertical positions to match actual container height (handles Dynamic Type / font scaling)
+  const capturedHeight = activeBones?.height ?? 0
+  const effectiveHeight = containerHeight > 0 ? containerHeight : capturedHeight
+  const scaleY = (effectiveHeight > 0 && capturedHeight > 0) ? effectiveHeight / capturedHeight : 1
 
   return (
     <View ref={containerRef} style={[styles.container, style]} onLayout={onLayout} collapsable={false}>
-      {showSkeleton ? (
-        <Animated.View style={{ width: '100%', height: boneHeight, opacity: transitioning ? fadeAnim : 1 }}>
+      {/* Always render children so the container reflects real content height (handles Dynamic Type) */}
+      <View style={showSkeleton && !transitioning ? styles.hidden : undefined} pointerEvents={showSkeleton ? 'none' : 'auto'}>
+        {showFallback ? fallback ?? null : children}
+      </View>
+
+      {showSkeleton && (
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: transitioning ? fadeAnim : 1 }]}>
           {activeBones.bones.map((raw: AnyBone, i: number) => {
             const b = normalizeBone(raw)
             const borderRadius = typeof b.r === 'number'
@@ -570,9 +582,9 @@ export function Skeleton({
                 style={{
                   position: 'absolute',
                   left: `${b.x}%`,
-                  top: b.y,
+                  top: b.y * scaleY,
                   width: `${b.w}%`,
-                  height: b.h,
+                  height: b.h * scaleY,
                   borderRadius,
                   backgroundColor: boneColor,
                   overflow: 'hidden',
@@ -610,10 +622,6 @@ export function Skeleton({
             )
           })}
         </Animated.View>
-      ) : showFallback ? (
-        fallback ?? null
-      ) : (
-        children
       )}
     </View>
   )
@@ -622,5 +630,8 @@ export function Skeleton({
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+  },
+  hidden: {
+    opacity: 0,
   },
 })

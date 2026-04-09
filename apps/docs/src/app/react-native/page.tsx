@@ -4,6 +4,7 @@ import { TableOfContents } from "@/components/toc";
 const tocItems = [
   { id: "quick-start", label: "Quick start" },
   { id: "how-scanning-works", label: "How scanning works" },
+  { id: "dynamic-type", label: "Dynamic Type" },
   { id: "other-ways", label: "Other ways to generate" },
   { id: "props", label: "Props" },
   { id: "dark-mode", label: "Dark mode" },
@@ -107,6 +108,31 @@ export default function ReactNativePage() {
             Shake your device and tap &quot;Reload&quot;, or press <code className="text-[12px] bg-amber-100 px-1 py-0.5 rounded">r</code> in the Expo terminal.
           </p>
         </div>
+      </section>
+
+      {/* Dynamic Type */}
+      <section>
+        <div className="section-divider" id="dynamic-type">
+          <span>Dynamic Type &amp; accessibility text sizing</span>
+        </div>
+        <p className="text-[14px] text-[#78716c] leading-relaxed mt-4 mb-4">
+          Boneyard adapts to iOS Dynamic Type and Android font scaling at runtime. When a user changes their
+          text size, the actual content grows or shrinks — boneyard detects the new container height and
+          scales bone positions proportionally to match.
+        </p>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="text-[13px] font-medium text-amber-800 mb-1">Generate bones at default font scale</p>
+          <p className="text-[13px] text-amber-700">
+            Always capture bones with your device set to the <strong>default</strong> text size (font scale 1.0).
+            The skeleton automatically scales bone positions up or down at runtime to match the user&apos;s
+            actual font scale — no need to capture at multiple sizes.
+          </p>
+        </div>
+        <p className="text-[13px] text-stone-400 mt-3">
+          Under the hood, children are rendered invisibly behind the skeleton overlay so the container
+          reflects the real content height. A <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">scaleY</code> ratio
+          adjusts all bone Y positions and heights to fit.
+        </p>
       </section>
 
       {/* Other ways to get bones */}
@@ -389,6 +415,11 @@ module.exports = config`} />
                 <td className="px-4 py-2 text-stone-800">Responsive</td>
                 <td className="px-4 py-2">ResizeObserver on container</td>
                 <td className="px-4 py-2">useWindowDimensions (screen width)</td>
+              </tr>
+              <tr className="border-b border-stone-100">
+                <td className="px-4 py-2 text-stone-800">Text scaling</td>
+                <td className="px-4 py-2">N/A (browser handles it)</td>
+                <td className="px-4 py-2">scaleY adapts to Dynamic Type / font scale</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 text-stone-800">Bone format</td>

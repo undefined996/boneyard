@@ -104,6 +104,8 @@ npx boneyard-js build --native --out ./bones
 # Open your app on device — bones capture automatically
 ```
 
+> **Dynamic Type:** Generate bones at default font scale. Boneyard automatically scales bone positions at runtime to match the user's text size setting.
+
 ## Generate bones
 
 ```bash
