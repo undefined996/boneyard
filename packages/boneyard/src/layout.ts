@@ -298,18 +298,26 @@ function layoutBlock(
 ): LayoutFragment {
   let y = 0
   let prevMarBottom = 0
+  let prevIsText = false
   const bones: Bone[] = []
 
   for (let i = 0; i < parent.children.length; i++) {
     const child = parent.children[i]!
+    const isText = !!child.textMetrics
     if (i > 0) {
       y -= Math.min(prevMarBottom, child.margin.top)
+      // Ensure minimum visual gap between consecutive text blocks (paragraph spacing)
+      const effectiveGap = Math.max(prevMarBottom, child.margin.top)
+      if (prevIsText && isText && effectiveGap < 8) {
+        y += 8 - effectiveGap
+      }
     }
 
     const childFragment = layoutCompiledNode(child, contentWidth)
     bones.push(...offsetBones(childFragment.bones, 0, y))
     y += childFragment.height
     prevMarBottom = child.margin.bottom
+    prevIsText = isText
   }
 
   return { height: y, bones }
