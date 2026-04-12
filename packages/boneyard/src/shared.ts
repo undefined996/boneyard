@@ -42,8 +42,8 @@ export const SHIMMER = {
   start: 30,
   end: 70,
   speed: '2s',
-  lightHighlight: '#f2f2f2',
-  darkHighlight: '#282828',
+  lightHighlight: '#f7f7f7',
+  darkHighlight: '#2c2c2c',
 } as const
 
 export const PULSE = {
