@@ -84,7 +84,6 @@ function StaticHeroDemo() {
             loading={true}
             animate="shimmer"
             stagger={40}
-            color="rgba(0,0,0,0.08)"
             snapshotConfig={{ leafTags: ["article"] }}
           >
             <DashboardMock />

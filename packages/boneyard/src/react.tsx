@@ -263,9 +263,10 @@ export function Skeleton({
               if (animationStyle === 'pulse') {
                 boneStyle.animation = `bp-${uid} 1.8s ease-in-out infinite`
               } else if (animationStyle === 'shimmer') {
-                boneStyle.background = `linear-gradient(90deg, ${boneColor} 30%, ${lighterColor} 50%, ${boneColor} 70%)`
+                const shimmerHighlight = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)'
+                boneStyle.background = `linear-gradient(110deg, ${boneColor} 47%, ${shimmerHighlight} 50%, ${boneColor} 53%)`
                 boneStyle.backgroundSize = '200% 100%'
-                boneStyle.animation = `bs-${uid} 2.4s linear infinite`
+                boneStyle.animation = `bs-${uid} 1.6s linear infinite`
               }
               if (staggerMs > 0) {
                 boneStyle.opacity = 0
