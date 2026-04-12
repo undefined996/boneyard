@@ -121,13 +121,13 @@ export default function ConfigPage() {
                 <td className="px-4 py-2 font-mono text-stone-800">color</td>
                 <td className="px-4 py-2">string</td>
                 <td className="px-4 py-2">#f0f0f0</td>
-                <td className="px-4 py-2">Bone fill color (light mode)</td>
+                <td className="px-4 py-2">Bone fill color (light mode). Any CSS color — hex, rgba, hsl, etc.</td>
               </tr>
               <tr className="border-b border-stone-100">
                 <td className="px-4 py-2 font-mono text-stone-800">darkColor</td>
                 <td className="px-4 py-2">string</td>
                 <td className="px-4 py-2">#222222</td>
-                <td className="px-4 py-2">Bone fill color (dark mode)</td>
+                <td className="px-4 py-2">Bone fill color (dark mode). Any CSS color.</td>
               </tr>
               <tr className="border-b border-stone-100">
                 <td className="px-4 py-2 font-mono text-stone-800">animate</td>

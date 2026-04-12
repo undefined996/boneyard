@@ -182,8 +182,8 @@ npx boneyard-js build --native --out ./bones
 | `children` | `ReactNode` | required | Real content |
 | `name` | `string` | required | Registry key + CLI identifier |
 | `initialBones` | `ResponsiveBones` | — | Pre-generated bones (overrides registry) |
-| `color` | `string` | #f0f0f0 | Bone fill color (light mode) |
-| `darkColor` | `string` | #222222 | Dark mode bone fill color (`.dark` class) |
+| `color` | `string` | #f0f0f0 | Bone fill color (light mode) — any CSS color (hex, rgba, hsl, etc.) |
+| `darkColor` | `string` | #222222 | Dark mode bone fill color (`.dark` class) — any CSS color |
 | `animate` | `AnimationStyle` | `'pulse'` | "pulse", "shimmer", "solid" (also accepts boolean) |
 | `stagger` | `number \| boolean` | `false` | Stagger delay (true=80ms) |
 | `transition` | `number \| boolean` | `false` | Fade-out duration (true=300ms) |

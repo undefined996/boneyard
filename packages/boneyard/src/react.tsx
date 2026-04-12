@@ -69,9 +69,9 @@ export interface SkeletonProps {
    * Pre-generated bones. Accepts a single `SkeletonResult` or a `ResponsiveBones` map.
    */
   initialBones?: SkeletonResult | ResponsiveBones
-  /** Bone color (default: 'rgba(0,0,0,0.08)', auto-detects dark mode) */
+  /** Bone fill color — any CSS color value (default: '#f0f0f0') */
   color?: string
-  /** Bone color for dark mode (default: 'rgba(255,255,255,0.06)'). Used when prefers-color-scheme is dark or a .dark ancestor exists. */
+  /** Bone fill color for dark mode (default: '#222222'). Used when a .dark ancestor exists. */
   darkColor?: string
   /** Animation style: 'pulse' (default), 'shimmer', 'solid', or boolean (true = pulse, false = solid) */
   animate?: AnimationStyle
