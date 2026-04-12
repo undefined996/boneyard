@@ -76,6 +76,9 @@ function StaticHeroDemo() {
         {/* Skeleton column — outer shapes only via leafTags */}
         <div>
           <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-2">Skeleton</div>
+          <div className="flex items-center gap-1 mb-1">
+            <Image src="/logo.png" alt="boneyard" width={80} height={20} className="h-[16px] w-auto opacity-20" />
+          </div>
           <Skeleton
             name="overview-dashboard"
             loading={true}
