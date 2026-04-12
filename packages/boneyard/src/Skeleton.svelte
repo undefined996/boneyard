@@ -167,9 +167,8 @@
 
   function darkModeAttachment(element: HTMLDivElement): void | (() => void) {
     const updateDark = () => {
-      const mq = window.matchMedia('(prefers-color-scheme: dark)')
       const hasDarkClass = document.documentElement.classList.contains('dark') || !!element.closest('.dark')
-      isDark = mq.matches || hasDarkClass
+      isDark = hasDarkClass
     }
 
     updateDark()

@@ -129,7 +129,7 @@ export function Skeleton({
       const mq = window.matchMedia('(prefers-color-scheme: dark)')
       const hasDarkClass = document.documentElement.classList.contains('dark') ||
         !!containerRef.current?.closest('.dark')
-      setIsDark(mq.matches || hasDarkClass)
+      setIsDark(hasDarkClass)
     }
     checkDark()
     const mq = window.matchMedia('(prefers-color-scheme: dark)')

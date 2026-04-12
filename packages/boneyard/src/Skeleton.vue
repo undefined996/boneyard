@@ -147,8 +147,7 @@ const pulseColor = computed(() =>
 function updateDarkMode() {
   if (typeof window === 'undefined') return
   try {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    isDark.value = mq.matches ||
+    isDark.value =
       document.documentElement.classList.contains('dark') ||
       !!containerRef.value?.closest('.dark')
   } catch {

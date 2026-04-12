@@ -261,8 +261,7 @@ export class SkeletonComponent implements AfterViewInit, OnDestroy, OnChanges {
   private updateDarkMode(): void {
     if (typeof window === 'undefined') return
     const el = this.containerRef?.nativeElement
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    this.isDark = mq.matches ||
+    this.isDark =
       document.documentElement.classList.contains('dark') ||
       !!el?.closest('.dark')
   }
