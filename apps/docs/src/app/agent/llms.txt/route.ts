@@ -232,8 +232,8 @@ Create \`boneyard.config.json\` in your project root. This is the primary way to
 | color | #f0f0f0 | Bone fill color (light mode) |
 | darkColor | #222222 | Bone fill color (dark mode, \`.dark\` class) |
 | animate | "pulse" | Animation: "pulse", "shimmer", or "solid" |
-| shimmerColor | #f2f2f2 | Shimmer highlight color (light mode) |
-| darkShimmerColor | #282828 | Shimmer highlight color (dark mode) |
+| shimmerColor | #f7f7f7 | Shimmer highlight color (light mode) |
+| darkShimmerColor | #2c2c2c | Shimmer highlight color (dark mode) |
 | speed | "2s" (shimmer) / "1.8s" (pulse) | Animation duration |
 | shimmerAngle | 110 | Shimmer gradient angle in degrees |
 | stagger | false | Delay between bones in ms (true = 80ms) |
