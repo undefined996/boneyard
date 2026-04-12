@@ -6,7 +6,7 @@ import { Skeleton } from "boneyard-js/react";
 import { BrowserMockup } from "@/components/browser-mockup";
 import { CopyIcon } from "@/components/ui/icons/copy";
 import { CheckIcon } from "@/components/ui/icons/check";
-import { GithubIcon } from "@/components/ui/icons/github";
+import { GitHubStarsButton } from "@/components/animate-ui/components/buttons/github-stars";
 import { CopyButton } from "@/components/ui/copy-button";
 
 function useGitHubStars() {
@@ -29,9 +29,6 @@ function useGitHubStars() {
 function DashboardMock() {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1 mb-1" data-no-skeleton>
-        <Image src="/logo.png" alt="boneyard" width={80} height={20} className="h-[16px] w-auto" />
-      </div>
       <div className="flex gap-1.5">
         <article className="flex-1 bg-emerald-50 border border-emerald-200 rounded-lg p-2">
           <div className="text-[9px] text-emerald-600 font-medium">Downloads</div>
@@ -70,13 +67,16 @@ function StaticHeroDemo() {
         {/* Real UI column */}
         <div>
           <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-2">Real UI</div>
+          <div className="flex items-center gap-1 mb-2">
+            <Image src="/logo.png" alt="boneyard" width={80} height={20} className="h-[16px] w-auto" />
+          </div>
           <DashboardMock />
         </div>
 
         {/* Skeleton column — outer shapes only via leafTags */}
         <div>
           <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wide mb-2">Skeleton</div>
-          <div className="flex items-center gap-1 mb-1">
+          <div className="flex items-center gap-1 mb-2">
             <Image src="/logo.png" alt="boneyard" width={80} height={20} className="h-[16px] w-auto opacity-20" />
           </div>
           <Skeleton
@@ -85,7 +85,7 @@ function StaticHeroDemo() {
             animate="shimmer"
             stagger={40}
             color="rgba(0,0,0,0.08)"
-            snapshotConfig={{ leafTags: ["article"], excludeSelectors: ["[data-no-skeleton]"] }}
+            snapshotConfig={{ leafTags: ["article"] }}
           >
             <DashboardMock />
           </Skeleton>
@@ -97,8 +97,6 @@ function StaticHeroDemo() {
 
 export default function OverviewPage() {
   const [copied, setCopied] = useState(false);
-  const stars = useGitHubStars();
-
   const handleCopy = () => {
     navigator.clipboard.writeText("npm install boneyard-js").then(() => {
       setCopied(true);
@@ -137,23 +135,13 @@ export default function OverviewPage() {
             </span>
           </button>
 
-          <a
-            href="https://github.com/0xGF/boneyard"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 h-9 px-3.5 rounded-lg border border-[#e7e5e4] text-[13px] text-[#57534e] hover:border-[#d6d3d1] hover:text-[#1c1917] transition-colors"
-          >
-            <GithubIcon size={16} />
-            GitHub
-            {stars !== null && stars > 0 && (
-              <span className="flex items-center gap-1 text-[12px] text-[#a8a29e] ml-0.5">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="text-[#d6d3d1]">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-                {stars}
-              </span>
-            )}
-          </a>
+          <GitHubStarsButton
+            username="0xGF"
+            repo="boneyard"
+            variant="default"
+            size="default"
+            className="h-9 bg-[#1c1917] text-white hover:bg-[#292524] border-0 rounded-lg text-[13px]"
+          />
         </div>
 
         <div className="space-y-4 text-[15px] leading-relaxed text-[#78716c]">
