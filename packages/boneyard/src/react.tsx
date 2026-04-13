@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, type ReactNode } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { normalizeBone } from './types.js'
 import type { Bone, AnyBone, SkeletonResult, ResponsiveBones, SnapshotConfig, AnimationStyle } from './types.js'
 import {
@@ -199,7 +199,7 @@ export function Skeleton({
   // without waiting for ResizeObserver. Before mount (SSR/hydration), use 0
   // to avoid hydration mismatch.
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+  useLayoutEffect(() => { setMounted(true) }, [])
 
   const effectiveBones = initialBones ?? (name ? getRegisteredBones(name) : undefined)
   const viewportWidth = mounted && typeof window !== 'undefined' ? window.innerWidth : 0

@@ -1,5 +1,5 @@
 /** @jsxImportSource preact */
-import { useRef, useState, useEffect } from 'preact/hooks'
+import { useRef, useState, useEffect, useLayoutEffect } from 'preact/hooks'
 import type { ComponentChildren } from 'preact'
 import { normalizeBone } from './types.js'
 import type { AnyBone, SkeletonResult, ResponsiveBones, SnapshotConfig, AnimationStyle } from './types.js'
@@ -187,7 +187,7 @@ export function Skeleton({
 
   // Resolve bones: explicit initialBones > registry lookup
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+  useLayoutEffect(() => { setMounted(true) }, [])
 
   const effectiveBones = initialBones ?? (name ? getRegisteredBones(name) : undefined)
   const viewportWidth = mounted && typeof window !== 'undefined' ? window.innerWidth : 0

@@ -8,12 +8,36 @@ export default function ChangelogPage() {
         </p>
       </div>
 
+      {/* v1.7.6 */}
+      <section>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-[14px] font-bold">v1.7.6</span>
+          <span className="text-[12px] text-stone-400">April 2026</span>
+          <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">latest</span>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-[14px] font-semibold mb-1">Fix skeleton bones not rendering on first frame in Next.js App Router</h3>
+            <p className="text-[13px] text-[#78716c] leading-relaxed">
+              The <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">mounted</code> flag used <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">useEffect</code> which fires after paint, causing bones to not appear until frame 3. Switched to <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">useLayoutEffect</code> so bones render on the first visible client frame. Fixes blank skeleton flash for short loading states. Affects React and Preact.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-[14px] font-semibold mb-1">Fix Angular component import error</h3>
+            <p className="text-[13px] text-[#78716c] leading-relaxed">
+              The Angular package was shipping raw TypeScript instead of pre-compiled JavaScript, causing &quot;Standard Angular field decorators are not supported in JIT mode&quot; errors in Angular 17+. The component is now compiled with <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">ngc</code> using Ivy partial compilation, and the CLI correctly detects and captures skeletons in Angular projects.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* v1.7.5 */}
       <section>
         <div className="flex items-center gap-3 mb-4">
           <span className="text-[14px] font-bold">v1.7.5</span>
           <span className="text-[12px] text-stone-400">April 2026</span>
-          <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">latest</span>
         </div>
 
         <div className="space-y-6">

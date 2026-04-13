@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { normalizeBone } from './types.js';
 import { adjustColor, ensureBuildSnapshotHook, getRegisteredBones, isBuildMode, registerBones, resolveResponsive, SHIMMER, PULSE, DEFAULTS, } from './shared.js';
 ensureBuildSnapshotHook();
@@ -14,7 +14,7 @@ let globalConfig = {};
  *
  * configureBoneyard({
  *   color: '#e5e5e5',
- *   darkColor: 'rgba(255,255,255,0.08)',
+ *   darkColor: '#2a2a2a',
  *   animate: true,
  * })
  * ```
@@ -35,26 +35,25 @@ export function Skeleton({ loading, children, name, initialBones, color, darkCol
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
     const [isDark, setIsDark] = useState(false);
-    // Auto-detect dark mode (watches both prefers-color-scheme and .dark class)
+    // Auto-detect dark mode via .dark class on <html> or ancestor
     useEffect(() => {
         if (typeof window === 'undefined')
             return;
         const checkDark = () => {
-            const mq = window.matchMedia('(prefers-color-scheme: dark)');
             const hasDarkClass = document.documentElement.classList.contains('dark') ||
                 !!containerRef.current?.closest('.dark');
-            setIsDark(mq.matches || hasDarkClass);
+            setIsDark(hasDarkClass);
         };
         checkDark();
-        const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        const mqHandler = () => checkDark();
-        mq.addEventListener('change', mqHandler);
-        // Watch for .dark class changes on <html>
+        // MutationObserver catches .dark toggling on <html>
         const mo = new MutationObserver(checkDark);
         mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        // matchMedia catches OS theme changes that may toggle .dark on non-<html> ancestors
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.addEventListener('change', checkDark);
         return () => {
-            mq.removeEventListener('change', mqHandler);
             mo.disconnect();
+            mq.removeEventListener('change', checkDark);
         };
     }, []);
     const effectiveColor = color ?? globalConfig.color ?? DEFAULTS.web.light;
@@ -100,7 +99,7 @@ export function Skeleton({ loading, children, name, initialBones, color, darkCol
     // without waiting for ResizeObserver. Before mount (SSR/hydration), use 0
     // to avoid hydration mismatch.
     const [mounted, setMounted] = useState(false);
-    useEffect(() => { setMounted(true); }, []);
+    useLayoutEffect(() => { setMounted(true); }, []);
     const effectiveBones = initialBones ?? (name ? getRegisteredBones(name) : undefined);
     const viewportWidth = mounted && typeof window !== 'undefined' ? window.innerWidth : 0;
     const resolveWidth = containerWidth > 0 ? containerWidth : viewportWidth;
@@ -156,15 +155,19 @@ export function Skeleton({ loading, children, name, initialBones, color, darkCol
                                 borderRadius: typeof b.r === 'string' ? b.r : `${b.r}px`,
                                 backgroundColor: boneColor,
                             };
+                            const effectiveSpeed = globalConfig.speed;
                             if (animationStyle === 'pulse') {
-                                boneStyle.animation = `bp-${uid} ${PULSE.speed} ease-in-out infinite`;
+                                boneStyle.animation = `bp-${uid} ${effectiveSpeed ?? PULSE.speed} ease-in-out infinite`;
                             }
                             else if (animationStyle === 'shimmer') {
-                                const shimmerHighlight = isDark ? SHIMMER.darkHighlight : SHIMMER.lightHighlight;
+                                const shimmerHighlight = isDark
+                                    ? (globalConfig.darkShimmerColor ?? SHIMMER.darkHighlight)
+                                    : (globalConfig.shimmerColor ?? SHIMMER.lightHighlight);
+                                const angle = globalConfig.shimmerAngle ?? SHIMMER.angle;
                                 delete boneStyle.backgroundColor;
-                                boneStyle.backgroundImage = `linear-gradient(${SHIMMER.angle}deg, ${boneColor} ${SHIMMER.start}%, ${shimmerHighlight} 50%, ${boneColor} ${SHIMMER.end}%)`;
+                                boneStyle.backgroundImage = `linear-gradient(${angle}deg, ${boneColor} ${SHIMMER.start}%, ${shimmerHighlight} 50%, ${boneColor} ${SHIMMER.end}%)`;
                                 boneStyle.backgroundSize = '200% 100%';
-                                boneStyle.animation = `bs-${uid} ${SHIMMER.speed} linear infinite`;
+                                boneStyle.animation = `bs-${uid} ${effectiveSpeed ?? SHIMMER.speed} linear infinite`;
                             }
                             if (staggerMs > 0) {
                                 boneStyle.opacity = 0;
