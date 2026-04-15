@@ -3,6 +3,7 @@ import {
   Input,
   ElementRef,
   ViewChild,
+  AfterContentInit,
   AfterViewInit,
   OnDestroy,
   OnChanges,
@@ -51,73 +52,66 @@ ensureBuildSnapshotHook()
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <!-- Build mode: render content for CLI capture -->
     <div
-      *ngIf="buildMode; else runtimeMode"
       #container
       [class]="cssClass"
       style="position:relative;"
       [attr.data-boneyard]="name"
       [attr.data-boneyard-config]="serializedSnapshotConfig"
     >
-      <div>
-        <ng-content select="[fixture]"></ng-content>
-        <ng-content></ng-content>
+      <div
+        data-boneyard-content="true"
+        [style.visibility]="!buildMode && showSkeleton && !transitioning ? 'hidden' : null"
+      >
+        <!-- Fixture slot: only rendered during CLI capture. -->
+        <ng-container *ngIf="buildMode">
+          <ng-content select="[fixture]"></ng-content>
+        </ng-container>
+        <!-- Fallback slot: rendered while loading if no bones are available. -->
+        <ng-container *ngIf="!buildMode && showFallback">
+          <ng-content select="[fallback]"></ng-content>
+        </ng-container>
+        <!-- Default slot: real children. Hidden (not removed) in build mode
+             when a fixture is present, or at runtime when the fallback is
+             showing — keeps projection stable across *ngIf changes. -->
+        <div [style.display]="(buildMode && hasFixture) || (!buildMode && showFallback) ? 'none' : null">
+          <ng-content></ng-content>
+        </div>
+      </div>
+
+      <div
+        *ngIf="!buildMode && showSkeleton && activeBones"
+        data-boneyard-overlay="true"
+        [style]="'position:absolute;inset:0;overflow:hidden;opacity:' + (transitioning ? 0 : 1) + ';' + (transitionMs > 0 ? 'transition:opacity ' + transitionMs + 'ms ease-out;' : '')"
+      >
+        <div style="position:relative;width:100%;height:100%;">
+          <div
+            *ngFor="let bone of visibleBones; let i = index; trackBy: trackBone"
+            data-boneyard-bone="true"
+            [class]="resolvedBoneClass"
+            [style]="getBoneStyle(bone, i)"
+          >
+            <div
+              *ngIf="animationStyle !== 'solid'"
+              [style]="getOverlayStyle()"
+            ></div>
+          </div>
+
+          <style *ngIf="animationStyle === 'pulse'">
+            @keyframes bp-{{ uid }} { 0%,100%{opacity:0} 50%{opacity:1} }
+          </style>
+          <style *ngIf="animationStyle === 'shimmer'">
+            @keyframes bs-{{ uid }} { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+          </style>
+          <style *ngIf="staggerMs > 0">
+            @keyframes by-{{ uid }} { from{opacity:0} to{opacity:1} }
+          </style>
+        </div>
       </div>
     </div>
-
-    <!-- Runtime mode -->
-    <ng-template #runtimeMode>
-      <div
-        #container
-        [class]="cssClass"
-        style="position:relative;"
-        [attr.data-boneyard]="name"
-        [attr.data-boneyard-config]="serializedSnapshotConfig"
-      >
-        <div data-boneyard-content="true" [style.visibility]="showSkeleton && !transitioning ? 'hidden' : null">
-          <ng-container *ngIf="showFallback; else defaultContent">
-            <ng-content select="[fallback]"></ng-content>
-          </ng-container>
-          <ng-template #defaultContent>
-            <ng-content></ng-content>
-          </ng-template>
-        </div>
-
-        <div
-          *ngIf="showSkeleton && activeBones"
-          data-boneyard-overlay="true"
-          [style]="'position:absolute;inset:0;overflow:hidden;opacity:' + (transitioning ? 0 : 1) + ';' + (transitionMs > 0 ? 'transition:opacity ' + transitionMs + 'ms ease-out;' : '')"
-        >
-          <div style="position:relative;width:100%;height:100%;">
-            <div
-              *ngFor="let bone of visibleBones; let i = index; trackBy: trackBone"
-              data-boneyard-bone="true"
-              [class]="resolvedBoneClass"
-              [style]="getBoneStyle(bone, i)"
-            >
-              <div
-                *ngIf="animationStyle !== 'solid'"
-                [style]="getOverlayStyle()"
-              ></div>
-            </div>
-
-            <style *ngIf="animationStyle === 'pulse'">
-              @keyframes bp-{{ uid }} { 0%,100%{opacity:0} 50%{opacity:1} }
-            </style>
-            <style *ngIf="animationStyle === 'shimmer'">
-              @keyframes bs-{{ uid }} { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-            </style>
-            <style *ngIf="staggerMs > 0">
-              @keyframes by-{{ uid }} { from{opacity:0} to{opacity:1} }
-            </style>
-          </div>
-        </div>
-      </div>
-    </ng-template>
   `,
 })
-export class SkeletonComponent implements AfterViewInit, OnDestroy, OnChanges {
+export class SkeletonComponent implements AfterContentInit, AfterViewInit, OnDestroy, OnChanges {
   @Input() loading = false
   @Input() name?: string
   @Input() initialBones?: SkeletonResult | ResponsiveBones
@@ -140,6 +134,8 @@ export class SkeletonComponent implements AfterViewInit, OnDestroy, OnChanges {
   isDark = false
   activeBones: SkeletonResult | null = null
   transitioning = false
+  /** True iff the user projected an element with the [fixture] attribute. */
+  hasFixture = false
 
   get resolvedBoneClass(): string | undefined {
     return this.boneClass ?? _globalConfig.boneClass
@@ -162,7 +158,20 @@ export class SkeletonComponent implements AfterViewInit, OnDestroy, OnChanges {
   private mq: MediaQueryList | null = null
   private mqHandler: (() => void) | null = null
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private hostRef: ElementRef<HTMLElement>,
+  ) {}
+
+  ngAfterContentInit(): void {
+    // Detect whether the user projected an element tagged with `fixture`.
+    // Only matters in build mode — at runtime the fixture slot isn't rendered,
+    // so nothing to hide.
+    if (this.buildMode && typeof window !== 'undefined') {
+      this.hasFixture = !!this.hostRef.nativeElement.querySelector('[fixture]')
+      this.cdr.markForCheck()
+    }
+  }
 
   get resolvedColor(): string {
     return this.isDark
