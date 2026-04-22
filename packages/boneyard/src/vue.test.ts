@@ -55,7 +55,18 @@ const compactBones = {
   height: 100,
   bones: [
     [5, 10, 90, 40, 8],
-    [5, 60, 50, 14, 4, true],
+    [5, 60, 50, 14, 4],
+  ],
+}
+
+const containerBones = {
+  name: 'container-card',
+  viewportWidth: 375,
+  width: 375,
+  height: 100,
+  bones: [
+    [0, 0, 100, 100, 8, true],
+    [5, 10, 90, 40, 8],
   ],
 }
 
@@ -132,15 +143,14 @@ describe('Vue Skeleton component', () => {
       expect(html).toContain('width: 90%')
     })
 
-    it('renders container bones with lighter color', async () => {
+    it('skips container bones so they do not overlap child bones', async () => {
       const html = await render({
         loading: true,
-        initialBones: compactBones,
+        initialBones: containerBones,
         color: '#000000',
       })
-      expect(html).toContain('#000000')
-      // Container bone (c=true) is lightened by CONTAINER.adjustment (0.12)
-      expect(html).toContain('background-color: #1f1f1f')
+      // Container bone (c=true) is skipped; only the child bone renders.
+      expect(html.match(/data-boneyard-bone/g)?.length).toBe(1)
     })
 
     it('applies string radius values', async () => {

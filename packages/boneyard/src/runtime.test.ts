@@ -83,7 +83,7 @@ describe('renderBones', () => {
   it('renders compact tuple bones', () => {
     const skel: SkeletonResult = {
       name: 'compact', viewportWidth: 400, width: 400, height: 200,
-      bones: [[10, 20, 80, 40, 8] as any, [0, 0, 100, 200, 12, true] as any],
+      bones: [[10, 20, 80, 40, 8] as any, [0, 60, 100, 100, 12] as any],
     }
     const html = renderBones(skel)
     expect(html).toContain('left:10%')
@@ -91,7 +91,7 @@ describe('renderBones', () => {
     expect(html).toContain('height:40px')
   })
 
-  it('renders container bones with lighter color', () => {
+  it('skips container bones so they do not overlap child bones', () => {
     const skel: SkeletonResult = {
       name: 'container', viewportWidth: 300, width: 300, height: 100,
       bones: [
@@ -100,12 +100,9 @@ describe('renderBones', () => {
       ],
     }
     const html = renderBones(skel, '#333333', false)
-    // Both bones should render with different colors
-    const boneElements = html.match(/boneyard-bone[^<]+background-color:(#[a-f0-9]+)/g)
+    const boneElements = html.match(/class="boneyard-bone"/g)
     expect(boneElements).not.toBeNull()
-    expect(boneElements!.length).toBe(2)
-    // Container bone color should differ from regular bone color
-    expect(boneElements![0]).not.toBe(boneElements![1])
+    expect(boneElements!.length).toBe(1)
   })
 
   it('renders asymmetric border radius string', () => {
