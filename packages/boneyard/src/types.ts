@@ -64,8 +64,18 @@ export interface Bone {
 /** Compact bone format: [x, y, w, h, r, c?] — c is omitted if false */
 export type CompactBone = [number, number, number, number, number | string] | [number, number, number, number, number | string, boolean]
 
-/** Either format — runtime detects which is being used */
-export type AnyBone = Bone | CompactBone
+/**
+ * Any form a bone may take at the input boundary.
+ *
+ * - `Bone`: structured object form.
+ * - `CompactBone`: hand-authored 5/6-element tuple.
+ * - `(number | string | boolean)[]`: what TypeScript infers for tuples loaded
+ *   from `*.bones.json` imports under `resolveJsonModule: true`. Tuple types
+ *   are narrowed to arrays on serialization; container bones emit a trailing
+ *   `true` so the union must cover booleans too. `normalizeBone` validates
+ *   the length at runtime.
+ */
+export type AnyBone = Bone | CompactBone | (number | string | boolean)[]
 
 /** Normalize a bone from either format to the object format */
 export function normalizeBone(b: AnyBone): Bone {
@@ -73,7 +83,9 @@ export function normalizeBone(b: AnyBone): Bone {
     if (b.length < 5 || b.length > 6) {
       throw new Error(`Invalid bone format: expected [x,y,w,h,r,c?] but got ${b.length} elements`)
     }
-    return { x: b[0], y: b[1], w: b[2], h: b[3], r: b[4], c: b[5] || undefined }
+    // Length is validated; narrow to the compact tuple shape.
+    const t = b as CompactBone
+    return { x: t[0], y: t[1], w: t[2], h: t[3], r: t[4], c: t[5] || undefined }
   }
   return b
 }
@@ -84,7 +96,12 @@ export interface SkeletonResult {
   viewportWidth: number
   width: number
   height: number
-  bones: Bone[]
+  /**
+   * Bones in either structured (`Bone`) or compact tuple (`CompactBone`) form.
+   * The CLI writes tuples into `*.bones.json`; `normalizeBone` converts on
+   * read. Both are valid inputs to `registerBones` and `<Skeleton initialBones>`.
+   */
+  bones: AnyBone[]
 }
 
 /**
