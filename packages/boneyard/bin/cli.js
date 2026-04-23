@@ -29,6 +29,7 @@ import http from 'http'
 import https from 'https'
 import { detectRegistryExtension } from './registry-file.js'
 import { isSinglePageMode } from './url-helpers.js'
+import { mergePreservingExisting } from './bone-merge.js'
 
 // Read our own version from the package.json that ships with this CLI.
 // `boneyard-js` may be installed anywhere — walk from this file rather than cwd.
@@ -315,8 +316,13 @@ if (!breakpoints) {
  */
 function probe(url) {
   return new Promise(resolve => {
-    const mod = url.startsWith('https') ? https : http
-    const req = mod.get(url, { timeout: 1500 }, res => {
+    const isHttps = url.startsWith('https')
+    const mod = isHttps ? https : http
+    // Local dev servers frequently terminate TLS with self-signed certs
+    // (mkcert, vite preview, Next.js --experimental-https). Reject-unauthorised
+    // would make the probe fail before we learn there's a server there.
+    const opts = { timeout: 1500, ...(isHttps ? { rejectUnauthorized: false } : {}) }
+    const req = mod.get(url, opts, res => {
       res.destroy()
       resolve(true)
     })
@@ -331,10 +337,18 @@ const DEV_PORTS = nativeMode
   : [3000, 3001, 3002, 5173, 5174, 4321, 8080, 8000, 4200, 8888]
 
 async function detectDevServer() {
+  // Try HTTP first (still the common case). If nothing responds on any of
+  // the usual ports, fall back to HTTPS — Vite / Next.js / SvelteKit all
+  // support running the dev server behind TLS, and some browser APIs
+  // (crypto.subtle, service workers in some modes, navigator.mediaDevices)
+  // are secure-context-only so users occasionally run dev over https. #80.
   for (const port of DEV_PORTS) {
     const url = `http://localhost:${port}`
-    const ok = await probe(url)
-    if (ok) return url
+    if (await probe(url)) return url
+  }
+  for (const port of DEV_PORTS) {
+    const url = `https://localhost:${port}`
+    if (await probe(url)) return url
   }
   return null
 }
@@ -428,7 +442,13 @@ if (cdpPort) {
     }
   }
 }
-const page = cdpContext ? await cdpContext.newPage() : await browser.newPage()
+// For non-CDP launches, create a context with ignoreHTTPSErrors so local
+// dev servers with self-signed certs (mkcert, vite preview, Next.js
+// --experimental-https) don't get rejected at navigation time. #80.
+// CDP mode reuses the user's Chrome context — their existing cert
+// handling applies there and we don't override it.
+const browserContext = cdpContext ?? await browser.newContext({ ignoreHTTPSErrors: true })
+const page = await browserContext.newPage()
 
 // Apply auth if configured (config file or --cookie CLI flag)
 if (config._cliCookies?.length) {
@@ -987,6 +1007,16 @@ for (const [name, data] of Object.entries(collected)) {
   console.log(`  \x1b[32m→\x1b[0m ${safeName}.bones.json  \x1b[2m(${bpCount} breakpoint${bpCount !== 1 ? 's' : ''})\x1b[0m`)
 }
 
+// Preserve previously-captured bones that weren't re-visited this run so
+// they don't silently drop out of the registry (#81). Typical scenario:
+// user captured /login while unauthenticated, then added auth.cookies and
+// re-ran — /login now redirects to /dashboard, so only /dashboard enters
+// `collected`, but login.bones.json is still on disk and valid. Use
+// --force to rebuild from scratch.
+if (!forceRebuild) {
+  mergePreservingExisting(collected, existingBones)
+}
+
 // ── Generate registry.js ─────────────────────────────────────────────────────
 const names = Object.keys(collected)
 const runtimeKeys = ['color', 'darkColor', 'animate', 'shimmerColor', 'darkShimmerColor', 'speed', 'shimmerAngle', 'stagger', 'transition', 'boneClass']
@@ -1132,7 +1162,9 @@ if (watchMode && !nativeMode) {
     originalLog(`  \x1b[2m⟳ Change detected — recapturing...\x1b[0m`)
     console.log = () => {}
     try {
-      for (const key of Object.keys(collected)) delete collected[key]
+      // Don't wipe `collected` on recapture — skeletons whose routes aren't
+      // re-visited this pass should stay in the registry (#81). Fresh
+      // captures will overwrite their entries via `capturePage`.
       skippedSkeletons.clear()
       visited.clear()
       toVisit.length = 0

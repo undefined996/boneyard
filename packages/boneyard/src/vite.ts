@@ -16,9 +16,11 @@
  */
 
 import { resolve, join } from 'path'
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs'
+import { writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync } from 'fs'
 import type { Plugin, ViteDevServer } from 'vite'
 import { detectRegistryExtension } from '../bin/registry-file.js'
+// @ts-expect-error — pure JS helper, no .d.ts
+import { mergePreservingExisting } from '../bin/bone-merge.js'
 
 export interface BoneyardPluginOptions {
   /** Output directory for .bones.json files (default: './src/bones' or './bones') */
@@ -103,6 +105,12 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
   let initialCaptureDone = false
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
   let loadedConfig: BoneyardConfig | null = null
+  // Persistent map of all skeleton bones the plugin knows about — seeded
+  // from existing `.bones.json` files on dev-server startup, updated on
+  // each capture. Prevents previously-captured bones from dropping out of
+  // the registry when their route isn't visited this run (#81).
+  const knownBones: Record<string, any> = {}
+  let existingBonesLoaded = false
 
   // Options may be overridden by boneyard.config.json — resolved in configureServer.
   let breakpoints = options.breakpoints ?? [375, 768, 1280]
@@ -146,7 +154,10 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
     } else {
       dbg('launching headless chromium')
       browser = await pw.chromium.launch()
-      context = await browser.newContext()
+      // ignoreHTTPSErrors for local dev servers using self-signed certs
+      // (mkcert, vite preview, Next.js --experimental-https, Quasar https
+      // dev mode). #80.
+      context = await browser.newContext({ ignoreHTTPSErrors: true })
     }
     page = await context.newPage()
 
@@ -185,6 +196,28 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
       const outputDir = detectOutDir(root)
       const fw = detectFramework(root)
       const registryFilename = `registry.${detectRegistryExtension(root)}`
+
+      // Seed `knownBones` from any `.bones.json` files already on disk, once.
+      // Done here (not in configureServer) so the outputDir has been resolved
+      // against the project root. #81.
+      if (!existingBonesLoaded) {
+        existingBonesLoaded = true
+        if (existsSync(outputDir)) {
+          try {
+            for (const f of readdirSync(outputDir)) {
+              if (!f.endsWith('.bones.json')) continue
+              try {
+                const data = JSON.parse(readFileSync(join(outputDir, f), 'utf-8'))
+                const name = f.replace(/\.bones\.json$/, '')
+                knownBones[name] = data
+              } catch { /* malformed file — ignore, fresh capture will overwrite */ }
+            }
+            const loaded = Object.keys(knownBones).length
+            if (loaded) dbg(`seeded ${loaded} previously-captured skeleton(s) from ${outputDir}`)
+          } catch { /* directory unreadable — no-op */ }
+        }
+      }
+
       const collected: Record<string, any> = {}
       const routeDiagnostics: Array<{ path: string; finalPath: string; redirected: boolean; markerCount: number; title: string; error?: string }> = []
 
@@ -311,7 +344,6 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
       }
 
       // Check if anything changed
-      const snapshot = JSON.stringify(collected)
       if (Object.keys(collected).length === 0) {
         // Nothing captured. Always print the per-route rundown so the user
         // can see why — this is the failure mode #75 flagged.
@@ -329,6 +361,15 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
         }
         return
       }
+
+      // Merge fresh captures into the long-lived `knownBones` map so any
+      // previously-captured skeletons whose routes weren't visited this
+      // run stay in the registry (#81). Fresh captures always overwrite
+      // stale entries of the same name.
+      for (const [name, data] of Object.entries(collected)) {
+        knownBones[name] = data
+      }
+      const snapshot = JSON.stringify(knownBones)
       if (snapshot === lastSnapshot) {
         dbg('snapshot unchanged — no files rewritten')
         return
@@ -337,7 +378,7 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
 
       // Write files
       mkdirSync(outputDir, { recursive: true })
-      const names = Object.keys(collected)
+      const names = Object.keys(knownBones)
 
       for (const [name, data] of Object.entries(collected)) {
         const outPath = resolve(outputDir, `${name}.bones.json`)
@@ -427,12 +468,17 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
         srv.httpServer?.once('listening', () => {
           const address = srv.httpServer?.address()
           if (!address || typeof address === 'string') return
-          const url = `http://localhost:${address.port}`
+          // Honour Vite's https config — `server.https` is truthy when the
+          // dev server is running behind TLS. Without this the plugin
+          // would navigate to `http://` against an HTTPS-only server and
+          // every page.goto would fail. #80.
+          const scheme = (srv.config.server as any)?.https ? 'https' : 'http'
+          const url = `${scheme}://localhost:${address.port}`
 
           // Delay initial capture to let the server fully start
           setTimeout(async () => {
             log(`watching for skeleton changes...`)
-            dbg(`routes: ${routes.join(', ')}  breakpoints: ${breakpoints.join(', ')}px`)
+            dbg(`routes: ${routes.join(', ')}  breakpoints: ${breakpoints.join(', ')}px  scheme: ${scheme}`)
             await capture(url, srv.config.root)
             initialCaptureDone = true
           }, 2000)
@@ -445,7 +491,8 @@ export function boneyardPlugin(options: BoneyardPluginOptions = {}): Plugin {
 
       const address = srv.httpServer?.address()
       if (!address || typeof address === 'string') return
-      const url = `http://localhost:${address.port}`
+      const scheme = (srv.config.server as any)?.https ? 'https' : 'http'
+      const url = `${scheme}://localhost:${address.port}`
 
       // Debounce — cancel previous timer, wait for HMR to settle
       if (debounceTimer) clearTimeout(debounceTimer)
