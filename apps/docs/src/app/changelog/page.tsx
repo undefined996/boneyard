@@ -8,12 +8,29 @@ export default function ChangelogPage() {
         </p>
       </div>
 
+      {/* v1.8.2 */}
+      <section>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-[14px] font-bold">v1.8.2</span>
+          <span className="text-[12px] text-stone-400">June 2026</span>
+          <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">latest</span>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-[14px] font-semibold mb-1"><code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">&lt;BoneSuspense&gt;</code> — Suspense-aware skeletons</h3>
+            <p className="text-[13px] text-[#78716c] leading-relaxed">
+              New <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">&lt;BoneSuspense&gt;</code> wrapper for React&apos;s <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">&lt;Suspense&gt;</code> model. Components that suspend — e.g. TanStack Query&apos;s <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">useSuspenseQuery</code> or <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">React.lazy</code> — render a <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">&lt;Skeleton&gt;</code> as the fallback, with no <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">initialData</code> / <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">placeholderData</code> or hand-authored fixture markup required. At build time the CLI&apos;s <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">--wait</code> window lets the query resolve so the real DOM is snapshotted; pass a <code className="text-[12px] bg-stone-100 px-1 py-0.5 rounded">fixture</code> as the build-time fallback if it can&apos;t finish in time. Resolves <a href="https://github.com/0xGF/boneyard/issues/82" className="underline">#82</a> via <a href="https://github.com/0xGF/boneyard/pull/88" className="underline">#88</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* v1.8.1 */}
       <section>
         <div className="flex items-center gap-3 mb-4">
           <span className="text-[14px] font-bold">v1.8.1</span>
           <span className="text-[12px] text-stone-400">April 2026</span>
-          <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">latest</span>
         </div>
 
         <div className="space-y-6">
